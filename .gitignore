@@ -1,0 +1,22 @@
+/bin/
+/tmp/
+/homevault.json
+*.exe
+*.test
+*.key
+*.secret
+rclone.conf
+__pycache__/
+*.pyc
+
+# Personal deployment records and lab-only helpers (retained locally).
+/docs/GOOGLE-DRIVE-SETUP.md
+/docs/WEBSITE-DEPLOYMENT.md
+/docs/VERIFICATION.md
+/scripts/cloud-roundtrip.py
+/scripts/cloud-failure-check.py
+/private/
+client_secret*.json
+*.pem
+.env
+.env.*

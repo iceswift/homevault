@@ -1,0 +1,19 @@
+[Unit]
+Description=HomeVault synthetic backup
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/homevault --config /etc/homevault/homevault.json backup synthetic
+User=homevault
+Group=homevault
+UMask=0077
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/homevault
+# Add the repository/cache/staging paths required by your reviewed configuration.
+TimeoutStartSec=3h
