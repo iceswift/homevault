@@ -42,7 +42,9 @@ Cloud-based replacement-machine preparation has advanced: selected application
 data, deployment/host configuration and pinned images were backed up encrypted
 with restored hash checks. An operator-specific catalog/bootstrap and independently
 opened credential kit are prepared; see OPERATOR-VALIDATION.md and REBUILD.md.
-This is not complete host recovery. Privileged inventory gaps, actual image load,
-isolated application/full replacement-machine drills and reviewed cutover remain.
+An isolated Ubuntu VM subsequently loaded the seven recovered images and passed
+selected application/database/media/auth/restart checks; see VM-RECOVERY-DRILL.md.
+This is not complete host recovery. Privileged inventory gaps, hardware/host-service
+reconstruction, account-loss tests and reviewed cutover remain.
 No second disk in the source server is required. Data repacking, crash/reboot
 certification and broader platform/app compatibility remain future work.

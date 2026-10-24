@@ -37,8 +37,9 @@ No reboot/power-loss test or capture-under-systemd test has been completed.
 
 ## What this backup does not cover
 
-The verified cloud backup covers one application's database and media. It is not
-a bootable disk image or a complete server backup. It does not automatically
+Initial cloud validation covered one application's database and media; selected
+coverage was later expanded as recorded below. It is not a bootable disk image or
+a complete server backup. It does not automatically
 include every application, Compose files, environment/secrets, locally built
 images, operating-system configuration, proxy/tunnel settings or other services.
 The credential kit unlocks repository data; it does not supply missing application
@@ -121,7 +122,9 @@ was not sent to the source server. Kit and identity remain on the same independe
 PC in separate private folders; an additional independent custody copy is not
 established by this test.
 
-This proves selected archive bytes and off-server bootstrap custody, not that the
-images load/run on a replacement machine. No new PostgreSQL application restore,
-full-server drill, physical disk-loss recovery or production cutover was performed.
-See REBUILD.md for the next isolated recovery gates.
+This preparation step proved selected archive bytes and off-server bootstrap
+custody; it did not itself load/run images. A subsequent isolated Ubuntu VM drill
+loaded all seven image references and exercised SQLite, PostgreSQL, JSON-state
+and static-site recovery with restart checks. See VM-RECOVERY-DRILL.md for precise
+scope, preserved failed attempts, cleanup and remaining host/hardware/cutover gaps.
+No physical disk-loss test or production cutover has been performed.

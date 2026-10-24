@@ -2,8 +2,10 @@
 
 This kit preserves selected recovery credentials in a standard age-encrypted JSON
 document. It does not contain backup data or automatically copy anything off-server.
-It is independent of Windows account-bound encryption. Only generated data was used
-in the disaster drills described below; no actual deployment key was exported.
+It is independent of Windows account-bound encryption. Initial automated disaster
+drills used generated data. Later owner-authorized deployment-key custody and
+kit-to-cloud operator checks are recorded in OPERATOR-VALIDATION.md and
+VM-RECOVERY-DRILL.md; they are separate from the fixture evidence below.
 
 ## Prepare independent custody
 
@@ -67,6 +69,13 @@ the same encrypted repository or on the same machine.
 ## Open on a new machine
 
 No original HomeVault config/state/password is required to open the kit:
+
+An operator later verified kit-to-cloud access on an independent Windows PC using
+direct Restic/rclone and restored a small bundle with matching hashes; see
+VM-RECOVERY-DRILL.md. This does not certify the HomeVault Windows engine. Transport
+executable paths containing spaces failed in that setup; task-local PATH plus a
+reviewed executable basename worked. The Linux bootstrap remains the primary
+application recovery route.
 
 ```sh
 homevault kit-open /off-server/new-kit.age /absolute/new-private-recovery --identity-file /private/off-server-identity.txt --confirm

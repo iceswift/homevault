@@ -5,6 +5,9 @@ Do not execute it on the original server. The catalog describes selected
 application recovery points, not a bootable disk image or a simultaneous host
 checkpoint. A full replacement-machine drill is still required.
 
+One operator completed the selected-application [isolated VM drill](VM-RECOVERY-DRILL.md).
+That evidence does not cover every host service or authorize production cutover.
+
 ## 1. Independent material before touching the replacement
 
 Obtain the reviewed bootstrap tools, encrypted credential kit, age private
@@ -60,6 +63,9 @@ Original absolute source paths are nested under each new restore target. Follow
 using files; do not promote files if any mismatch. Never restore onto `/`, an
 existing app data directory or production DB.
 
+Locate the backup manifest at the exact catalog-selected snapshot root. A PWA
+may also contain `manifest.json`; a filename search alone is ambiguous.
+
 ## 3. Images, definitions and data
 
 Verify the restored image archive's SHA-256 and archive manifest against the
@@ -85,11 +91,15 @@ Review image platform and local disk/RAM before starting anything.
   Use a copy in a fresh data directory; run SQLite integrity check. Review the
   original rehearsal plan and expected volume destinations. Preserve DB/media
   pairing, Compose build arguments, demo restrictions and resource limits.
+  Make both the DB file and its mounted parent directory accessible to the
+  runtime image's numeric UID; changing the file owner alone is insufficient.
 - **PostgreSQL app:** use its dump and uploads archive from the same scheduled
   bundle. Check SHA256SUMS and archive paths before extraction. Create a new empty
   DB/data root and separate Compose project/loopback port. Restore only trusted
   SQL archives into that isolated DB. Review the included restore.sh manually.
   Preserve role/bootstrap config; do not copy live PostgreSQL physical storage.
+  Wait for a real SQL connection over TCP to the final database before import;
+  a temporary init server's Unix-socket readiness is insufficient.
   Remove gateway credentials, disable payment/reconciliation workers, scheduled
   tasks, real SMS/notifications and external mutations before starting the app.
   Start operations health state empty; old success/heartbeat files are not fresh.
