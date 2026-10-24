@@ -34,6 +34,7 @@ func run(ctx context.Context, args []string) error {
 	file := fs.String("config", "homevault.json", "configuration file")
 	timeout := fs.Duration("timeout", 2*time.Hour, "operation timeout")
 	fs.Usage = func() {
+		fmt.Fprintln(fs.Output(), "Reviewed workflow event: notify-event PROJECT failed|stale|recovered --confirm (notification only; no job freshness change)")
 		fmt.Fprintln(fs.Output(), "Portable recovery: kit-export PROJECT FULL_ID NEW_KIT.age --recipient AGE_PUBLIC_KEY --confirm; kit-open KIT.age NEW_DIRECTORY --identity-file PRIVATE_KEY --confirm")
 		fmt.Fprintln(fs.Output(), "Drive onboarding: drive-setup NEW_DIRECTORY --client-json FILE; drive-auth DIRECTORY --confirm; drive-status DIRECTORY [--online]")
 		fmt.Fprintln(fs.Output(), "Unused-pack cleanup: prune-plan; prune-save NEW_PLAN.json; prune-apply PLAN.json --repository-wide --preserve VERIFIED_FULL_ID --confirm")
@@ -89,6 +90,9 @@ func run(ctx context.Context, args []string) error {
 		ctx, cancel := context.WithTimeout(ctx, *timeout)
 		defer cancel()
 		return runDrive(ctx, a)
+	}
+	if a[0] == "notify-event" && (len(a) != 4 || a[3] != "--confirm") {
+		return errors.New("usage: notify-event PROJECT failed|stale|recovered --confirm")
 	}
 	if *timeout <= 0 {
 		return errors.New("timeout must be positive")
@@ -166,6 +170,11 @@ func run(ctx context.Context, args []string) error {
 			return errors.New("usage: job-backup PROJECT")
 		}
 		return e.RunBackupJob(ctx, a[1])
+	case "notify-event":
+		if len(a) != 4 || a[3] != "--confirm" {
+			return errors.New("usage: notify-event PROJECT failed|stale|recovered --confirm")
+		}
+		return e.NotifyEvent(ctx, a[1], a[2])
 	case "capture-backup":
 		if len(a) != 4 || a[3] != "--confirm" {
 			return errors.New("usage: capture-backup PROJECT PLAN.json --confirm")

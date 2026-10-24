@@ -1,0 +1,20 @@
+[Unit]
+Description=HomeVault workflow source preflight (reviewable example)
+After=docker.service
+
+[Service]
+Type=oneshot
+User=homevault
+Group=homevault
+UMask=0077
+StateDirectory=homevault homevault-workflows
+StateDirectoryMode=0700
+ExecStart=/usr/bin/python3 /usr/local/libexec/homevault/planned-workflow.py --plan /etc/homevault/workflows.json preflight all
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/homevault /var/lib/homevault-workflows
+# A sealed-source lock opened read/write needs its exact existing FILE allowed.
+TimeoutStartSec=3m
+# This checks metadata/access; it does not capture, upload or notify.

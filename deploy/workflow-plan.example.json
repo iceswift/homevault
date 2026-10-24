@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "root": "/var/lib/homevault-workflows",
+  "base_config": "/etc/homevault/homevault.json",
+  "homevault_binary": "/usr/local/bin/homevault",
+  "notifications_enabled": false,
+  "workflows": [
+    {
+      "name": "deployment-files",
+      "project": "deployment-files",
+      "kind": "files",
+      "enabled": false,
+      "max_age_hours": 36,
+      "files": [
+        {
+          "source": "/srv/example/deploy/compose.yml",
+          "target": "deploy/compose.yml"
+        }
+      ],
+      "trees": []
+    }
+  ]
+}

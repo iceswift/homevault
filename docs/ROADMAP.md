@@ -48,3 +48,12 @@ This is not complete host recovery. Privileged inventory gaps, hardware/host-ser
 reconstruction, account-loss tests and reviewed cutover remain.
 No second disk in the source server is required. Data repacking, crash/reboot
 certification and broader platform/app compatibility remain future work.
+
+Workflow preparation update: an experimental Linux coordinator connects reviewed
+SQLite/JSON capture, a completed Saan-format local bundle and deployment/static
+files to verified jobs and source-age-aware alerts. Activation/notification gates,
+deduplication, failure preservation and fixtures are covered in PLANNED-WORKFLOWS.md.
+An operator installed static service definitions and ran read-only source checks;
+no live coordinator pause/upload, real suite alert or timer activation is implied.
+Local-stage cleanup and complete producer-specific failure monitoring remain
+activation/operational review items; no automatic Drive deletion was added.

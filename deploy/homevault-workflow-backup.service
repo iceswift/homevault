@@ -1,0 +1,26 @@
+[Unit]
+Description=HomeVault reviewed workflow coordinator (example; activation disabled in plan)
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+User=homevault
+Group=homevault
+UMask=0077
+StateDirectory=homevault homevault-workflows
+StateDirectoryMode=0700
+ExecStart=/usr/bin/python3 /usr/local/libexec/homevault/planned-workflow.py --plan /etc/homevault/workflows.json run all --confirm
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/homevault /var/lib/homevault-workflows
+# Add the reviewed existing sealed-source lock FILE and rclone token directory.
+# Add a reviewed ExecStopPost rescue for each pinned capture guard.
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+TimeoutStartSec=6h30m
+TimeoutStopSec=90s
+# Deliberately static: no [Install] section and no accompanying timer.

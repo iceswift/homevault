@@ -20,6 +20,10 @@ snapshot selection, OCI image archive verification and isolated reconstruction.
 The catalog helper prepares recovery-only configs; it does not install or start
 services. Preparing a bundle is separate from proving a replacement-machine restore.
 
+Optional Linux [prepared workflows](docs/PLANNED-WORKFLOWS.md) coordinate reviewed
+fresh captures/sealed bundles with verified uploads and source-age alerts. They
+require explicit activation and do not create timers or enable cloud schedules.
+
 Experimental Linux database preparation now supports SQLite online backup and PostgreSQL custom dumps before Restic runs. See [database configuration and limits](docs/DATABASE-BACKUPS.md). Database exports and attached files are not a shared atomic application snapshot; coordinate application writes externally when needed. Never point file paths directly at running PostgreSQL storage or copy live SQLite files as ordinary files.
 
 Experimental [backup jobs and alerts](docs/SCHEDULING-ALERTS.md) provide persisted backup/check status, the latest 32 attempts, freshness checks, optional minimal Discord notifications and reviewable systemd templates. They are not installed/enabled automatically. Plain backup and rehearsal remain distinct from a scheduled job's status.

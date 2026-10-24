@@ -347,3 +347,18 @@ func (e *Engine) NotifyTest(ctx context.Context, project string) error {
 	}
 	return e.sendNotification(ctx, project, "test")
 }
+
+// NotifyEvent lets a reviewed external capture workflow reuse the redacted
+// notifier. It never manufactures a backup result or changes job freshness.
+func (e *Engine) NotifyEvent(ctx context.Context, project, event string) error {
+	if e.cfg.RecoveryOnly {
+		return errors.New("recovery-only configuration refuses workflow notifications")
+	}
+	if _, err := e.cfg.Project(project); err != nil {
+		return err
+	}
+	if event != "failed" && event != "stale" && event != "recovered" {
+		return errors.New("workflow event must be failed, stale or recovered")
+	}
+	return e.sendNotification(ctx, project, event)
+}

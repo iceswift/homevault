@@ -1,0 +1,21 @@
+[Unit]
+Description=HomeVault source-capture and upload freshness monitor (reviewable example)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=homevault
+Group=homevault
+UMask=0077
+StateDirectory=homevault homevault-workflows
+StateDirectoryMode=0700
+ExecStart=/usr/bin/python3 /usr/local/libexec/homevault/planned-workflow.py --plan /etc/homevault/workflows.json monitor all
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/homevault /var/lib/homevault-workflows
+Nice=10
+TimeoutStartSec=90s
+# No timer or automatic enablement. Notifications stay disabled in the example plan.

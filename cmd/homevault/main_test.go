@@ -136,6 +136,17 @@ func TestDemoSetupRefusesExistingDirectory(t *testing.T) {
 	}
 }
 
+func TestWorkflowNotificationRequiresConfirmation(t *testing.T) {
+	lab := filepath.Join(t.TempDir(), "lab")
+	if err := setupDemo(lab); err != nil {
+		t.Fatal(err)
+	}
+	err := run(context.Background(), []string{"--config", filepath.Join(lab, "homevault.json"), "notify-event", "synthetic", "failed"})
+	if err == nil || !strings.Contains(err.Error(), "--confirm") {
+		t.Fatal("workflow notification accepted without confirmation", err)
+	}
+}
+
 func TestTUIQuitWaitsForCleanup(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

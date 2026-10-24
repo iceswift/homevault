@@ -4,6 +4,11 @@ This release prepares the software and reviewable systemd templates. It does **n
 
 ## Commands
 
+For coordinated multi-service preparation, source-age checks and capture failures
+before the Go job begins, see [prepared workflows](PLANNED-WORKFLOWS.md). That
+experimental coordinator ships with activation and notification switches disabled;
+it does not install timers or replace an application's existing local schedule.
+
 ```sh
 homevault --config /absolute/homevault.json --timeout 2h job-backup PROJECT
 homevault --config /absolute/homevault.json status PROJECT
