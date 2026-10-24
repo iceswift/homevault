@@ -1,6 +1,6 @@
 # Backup jobs, freshness monitoring and Discord (experimental)
 
-This release prepares the software and reviewable systemd templates. It does **not** install/enable services, stop applications, select a real webhook or send Discord messages automatically. The owner explicitly chose preparation only.
+This release prepares the software and reviewable systemd templates. It does **not** install/enable services, stop applications, select a real webhook or send Discord messages automatically. Separately, one owner explicitly authorized manual service installation and real notification tests; see [operator validation](OPERATOR-VALIDATION.md). Timers remain inactive.
 
 ## Commands
 

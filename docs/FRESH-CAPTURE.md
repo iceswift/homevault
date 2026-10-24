@@ -1,6 +1,6 @@
 # Fresh SQLite application capture (Linux, experimental)
 
-This adapter prepares a new DB/media copy for every job, resumes the application **before** Restic upload, and holds the same engine operation lock across capture, upload and repository check. No timer is installed or enabled automatically. The current owner chose preparation/testing only, not another production stop or a real Discord test.
+This adapter prepares a new DB/media copy for every job, resumes the application **before** Restic upload, and holds the same engine operation lock across capture, upload and repository check. No timer is installed or enabled automatically. A separately authorized operator capture/rehearsal and real Discord tests have since passed; see [operator validation](OPERATOR-VALIDATION.md). Capture-service execution and timer activation remain pending.
 
 ## Supported deployment
 

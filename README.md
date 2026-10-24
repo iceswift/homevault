@@ -84,4 +84,12 @@ Do not delete failed restore output and claim success. Investigate it and restor
 
 ## Project status
 
+One owner-operated deployment has now completed off-server key opening, a fresh
+SQLite/media cloud backup and isolated application recovery, real Discord delivery
+tests, and manual systemd preflight/monitor execution. No timer is enabled. See
+[operator validation and remaining recovery scope](docs/OPERATOR-VALIDATION.md).
+This covers one application's data, not the whole server. Cloud-based host rebuild
+support is a planned next step; a second disk in the source server is not required
+for that direction.
+
 MIT licensed. Source: [iceswift/homevault](https://github.com/iceswift/homevault). No production service, database, cloud token or existing Drive file is required for local development. See [verification notes](docs/TESTING.md) and [roadmap](docs/ROADMAP.md) for tested behavior and remaining work.
