@@ -1,10 +1,13 @@
 [Unit]
-Description=Daily HomeVault backup
+Description=Daily HomeVault backup example (03:15 Asia/Bangkok)
 
 [Timer]
-OnCalendar=*-*-* 03:00:00
-RandomizedDelaySec=10m
+OnCalendar=*-*-* 03:15:00 Asia/Bangkok
+RandomizedDelaySec=0
 Persistent=true
+AccuracySec=1m
+# Persistent catch-up can run outside this hour after downtime. Do not enable
+# this unchanged for an app-stopping adapter without a maintenance-window guard.
 
 [Install]
 WantedBy=timers.target

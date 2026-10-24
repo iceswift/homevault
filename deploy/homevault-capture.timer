@@ -1,0 +1,12 @@
+[Unit]
+Description=Fresh capture example (03:15 Asia/Bangkok, no daytime catch-up)
+
+[Timer]
+OnCalendar=*-*-* 03:15:00 Asia/Bangkok
+Unit=homevault-capture.service
+Persistent=false
+AccuracySec=1m
+RandomizedDelaySec=0
+
+[Install]
+WantedBy=timers.target

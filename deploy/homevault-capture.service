@@ -1,0 +1,30 @@
+[Unit]
+Description=HomeVault fresh SQLite app capture job (review before use)
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+User=homevault
+Group=homevault
+UMask=0077
+Environment=RCLONE_CONFIG=/var/lib/homevault/private/rclone.conf
+StateDirectory=homevault
+StateDirectoryMode=0700
+ExecStart=/usr/local/bin/homevault --config /etc/homevault/homevault.json --timeout 2h capture-backup synthetic /etc/homevault/capture-plan.json --confirm
+# Config/key/Restic access is deliberately not required for this recovery helper.
+# Match this path to state_dir and the project name in the reviewed config.
+ExecStopPost=/usr/local/bin/homevault resume-paused /var/lib/homevault/guards/synthetic.json --force
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/homevault
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+TimeoutStartSec=3h
+TimeoutStopSec=60s
+# Explicitly review Docker access for this account; this file grants no group
+# membership. Docker socket access is root-equivalent, not an isolation boundary.
+# No timer is enabled automatically. Source DB/media are read, not modified.

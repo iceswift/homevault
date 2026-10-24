@@ -1,0 +1,21 @@
+[Unit]
+Description=Resume expired app pause and check capture-job freshness (example)
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+User=homevault
+Group=homevault
+UMask=0077
+StateDirectory=homevault
+StateDirectoryMode=0700
+# Expired guard only; never force-resume a currently valid capture window.
+ExecStartPre=/usr/local/bin/homevault resume-paused /var/lib/homevault/guards/synthetic.json
+ExecStart=/usr/local/bin/homevault --config /etc/homevault/homevault.json --timeout 30s monitor synthetic --max-age 36h
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/homevault
+TimeoutStartSec=2m

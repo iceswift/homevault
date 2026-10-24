@@ -12,23 +12,44 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"time"
 )
 
 const CurrentVersion = 1
 
 type Config struct {
-	Version      int       `json:"version"`
-	StateDir     string    `json:"state_dir"`
-	Repository   string    `json:"repository"`
-	PasswordFile string    `json:"password_file"`
-	ResticBinary string    `json:"restic_binary,omitempty"`
-	RcloneBinary string    `json:"rclone_binary,omitempty"`
-	Projects     []Project `json:"projects"`
+	Version            int       `json:"version"`
+	StateDir           string    `json:"state_dir"`
+	Repository         string    `json:"repository"`
+	PasswordFile       string    `json:"password_file"`
+	ResticBinary       string    `json:"restic_binary,omitempty"`
+	RcloneBinary       string    `json:"rclone_binary,omitempty"`
+	PythonBinary       string    `json:"python_binary,omitempty"`
+	PgDumpBinary       string    `json:"pg_dump_binary,omitempty"`
+	PgRestoreBinary    string    `json:"pg_restore_binary,omitempty"`
+	DiscordWebhookFile string    `json:"discord_webhook_file,omitempty"`
+	NotifySuccess      bool      `json:"notify_success,omitempty"`
+	BackupMaxAge       string    `json:"backup_max_age,omitempty"`
+	Projects           []Project `json:"projects"`
 }
 
 type Project struct {
-	Name  string   `json:"name"`
-	Paths []string `json:"paths"`
+	Name            string     `json:"name"`
+	Paths           []string   `json:"paths"`
+	Databases       []Database `json:"databases,omitempty"`
+	CaptureRequired bool       `json:"capture_required,omitempty"`
+}
+
+// PostgreSQL credentials use a libpq password file, never a connection URL.
+type Database struct {
+	Name         string `json:"name"`
+	Type         string `json:"type"`
+	Source       string `json:"source,omitempty"`
+	Host         string `json:"host,omitempty"`
+	Port         int    `json:"port,omitempty"`
+	Database     string `json:"database,omitempty"`
+	User         string `json:"user,omitempty"`
+	PasswordFile string `json:"password_file,omitempty"`
 }
 
 var safeName = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$`)
@@ -69,6 +90,15 @@ func (cfg Config) Project(name string) (Project, error) {
 // Validate supports local absolute repositories and rclone:<remote>:<path> only.
 // Credentials belong in password_file and the user's existing rclone configuration.
 func (cfg Config) Validate() error {
+	if cfg.DiscordWebhookFile != "" && ValidateDestination(cfg.DiscordWebhookFile) != nil {
+		return errors.New("discord_webhook_file must be an absolute private file path, never the webhook URL")
+	}
+	if cfg.BackupMaxAge != "" {
+		age, err := time.ParseDuration(cfg.BackupMaxAge)
+		if err != nil || age <= 0 {
+			return errors.New("backup_max_age must be a positive Go duration, for example 36h")
+		}
+	}
 	if cfg.Version != CurrentVersion {
 		return fmt.Errorf("unsupported configuration version (expected %d)", CurrentVersion)
 	}
@@ -108,8 +138,30 @@ func (cfg Config) Validate() error {
 			return errors.New("project names must be unique")
 		}
 		seen[project.Name] = true
-		if len(project.Paths) == 0 {
+		if project.CaptureRequired && (len(project.Paths) != 1 || len(project.Databases) != 1 || project.Databases[0].Type != "sqlite") {
+			return errors.New("capture_required projects need one SQLite DB and one media directory")
+		}
+		if len(project.Paths) == 0 && len(project.Databases) == 0 {
 			return fmt.Errorf("project %s requires at least one path", project.Name)
+		}
+		dbNames := map[string]bool{}
+		for _, db := range project.Databases {
+			if !safeName.MatchString(db.Name) || dbNames[db.Name] {
+				return errors.New("database names must be safe and unique within a project")
+			}
+			dbNames[db.Name] = true
+			switch db.Type {
+			case "sqlite":
+				if ValidateDestination(db.Source) != nil || db.Host != "" || db.Port != 0 || db.Database != "" || db.User != "" || db.PasswordFile != "" {
+					return errors.New("sqlite requires an absolute source and no PostgreSQL settings")
+				}
+			case "postgres":
+				if db.Source != "" || db.Host == "" || strings.ContainsAny(db.Host, "\x00\r\n") || db.Port < 1 || db.Port > 65535 || !safeName.MatchString(db.Database) || !safeName.MatchString(db.User) || !filepath.IsAbs(db.PasswordFile) {
+					return errors.New("postgres requires explicit host, port, safe database/user and absolute password_file; URLs are unsupported")
+				}
+			default:
+				return errors.New("database type must be sqlite or postgres")
+			}
 		}
 		for _, source := range project.Paths {
 			if err := ValidateDestination(source); err != nil {
@@ -117,7 +169,10 @@ func (cfg Config) Validate() error {
 			}
 			// Sources may be missing after a disk failure. Restore and repository
 			// inspection must remain available; Backup checks source availability.
-			for _, protected := range []string{cfg.StateDir, cfg.PasswordFile} {
+			for _, protected := range []string{cfg.StateDir, cfg.PasswordFile, cfg.DiscordWebhookFile} {
+				if protected == "" {
+					continue
+				}
 				inside, err := Contains(source, protected)
 				if err != nil {
 					return errors.New("cannot resolve configured paths")
@@ -141,6 +196,34 @@ func (cfg Config) Validate() error {
 				}
 				if inside || reverse {
 					return fmt.Errorf("project %s source and local repository must not overlap", project.Name)
+				}
+			}
+		}
+	}
+	// Protect every database source/credential across all projects, including aliases.
+	for _, project := range cfg.Projects {
+		for _, db := range project.Databases {
+			p := db.Source
+			if db.Type == "postgres" {
+				p = db.PasswordFile
+			}
+			for _, protected := range []string{cfg.StateDir, cfg.PasswordFile, cfg.Repository, cfg.DiscordWebhookFile} {
+				if !filepath.IsAbs(protected) {
+					continue
+				}
+				a, e1 := Contains(p, protected)
+				b, e2 := Contains(protected, p)
+				if e1 != nil || e2 != nil || a || b {
+					return errors.New("database path overlaps protected storage")
+				}
+			}
+			for _, other := range cfg.Projects {
+				for _, source := range other.Paths {
+					a, e1 := Contains(source, p)
+					b, e2 := Contains(p, source)
+					if e1 != nil || e2 != nil || a || b {
+						return errors.New("file sources must not overlap live SQLite databases or database credentials")
+					}
 				}
 			}
 		}

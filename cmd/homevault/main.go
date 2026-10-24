@@ -34,7 +34,7 @@ func run(ctx context.Context, args []string) error {
 	file := fs.String("config", "homevault.json", "configuration file")
 	timeout := fs.Duration("timeout", 2*time.Hour, "operation timeout")
 	fs.Usage = func() {
-		fmt.Fprintln(fs.Output(), "Usage: homevault [--config FILE] [--timeout 2h] COMMAND\nCommands: version, demo-setup NEW_DIRECTORY, doctor, init, backup PROJECT, snapshots PROJECT, check, restore PROJECT FULL_SNAPSHOT_ID NEW_TARGET --confirm, tui")
+		fmt.Fprintln(fs.Output(), "Usage: homevault [--config FILE] [--timeout 2h] COMMAND\nCommands: version, demo-setup NEW_DIRECTORY, doctor, init, backup PROJECT, job-backup PROJECT, capture-check PROJECT PLAN.json, capture-backup PROJECT PLAN.json --confirm, status PROJECT, monitor PROJECT --max-age 36h, notify-test PROJECT, snapshots PROJECT, check, restore PROJECT FULL_SNAPSHOT_ID NEW_TARGET --confirm, rehearse PROJECT FULL_SNAPSHOT_ID NEW_TARGET PLAN.json --confirm, resume-paused GUARD_FILE [--force], tui")
 	}
 	if err := fs.Parse(args); err != nil {
 		return err
@@ -47,6 +47,17 @@ func run(ctx context.Context, args []string) error {
 	if a[0] == "version" {
 		fmt.Println("homevault", version)
 		return nil
+	}
+	if a[0] == "pause-guardian" || a[0] == "resume-paused" {
+		if len(a) != 2 && !(a[0] == "resume-paused" && len(a) == 3 && a[2] == "--force") {
+			return errors.New("usage: pause-guardian GUARD_FILE | resume-paused GUARD_FILE [--force]")
+		}
+		if a[0] == "pause-guardian" {
+			return engine.PauseGuardian(ctx, a[1])
+		}
+		resumeCtx, stop := context.WithTimeout(ctx, 45*time.Second)
+		defer stop()
+		return engine.RecoverPaused(resumeCtx, a[1], len(a) == 3)
 	}
 	if a[0] == "demo-setup" {
 		if len(a) != 2 {
@@ -80,6 +91,71 @@ func run(ctx context.Context, args []string) error {
 			return errors.New("usage: backup PROJECT")
 		}
 		return e.Backup(ctx, a[1])
+	case "job-backup":
+		if len(a) != 2 {
+			return errors.New("usage: job-backup PROJECT")
+		}
+		return e.RunBackupJob(ctx, a[1])
+	case "capture-backup":
+		if len(a) != 4 || a[3] != "--confirm" {
+			return errors.New("usage: capture-backup PROJECT PLAN.json --confirm")
+		}
+		plan, err := engine.LoadCapturePlan(a[2])
+		if err != nil {
+			return err
+		}
+		err = e.RunCapturedJob(ctx, a[1], plan)
+		if errors.Is(err, engine.ErrOutsideMaintenanceWindow) {
+			fmt.Println("SKIP outside reviewed maintenance window; no app stopped")
+			return nil
+		}
+		return err
+	case "capture-check":
+		if len(a) != 3 {
+			return errors.New("usage: capture-check PROJECT PLAN.json")
+		}
+		plan, err := engine.LoadCapturePlan(a[2])
+		if err != nil {
+			return err
+		}
+		if err = e.CheckCaptureSource(ctx, a[1], plan); err != nil {
+			return err
+		}
+		fmt.Println("PASS capture source identity/layout/read access; no app stopped and no backup performed")
+		return nil
+	case "status":
+		if len(a) != 2 {
+			return errors.New("usage: status PROJECT")
+		}
+		state, err := e.JobStatus(a[1])
+		if err != nil {
+			return err
+		}
+		return json.NewEncoder(os.Stdout).Encode(state)
+	case "monitor":
+		if len(a) != 4 || a[2] != "--max-age" {
+			return errors.New("usage: monitor PROJECT --max-age 36h")
+		}
+		age, err := time.ParseDuration(a[3])
+		if err != nil || age <= 0 {
+			return errors.New("max-age must be a positive duration")
+		}
+		result, err := e.Monitor(ctx, a[1], age)
+		if encodeErr := json.NewEncoder(os.Stdout).Encode(result); encodeErr != nil {
+			return encodeErr
+		}
+		if err != nil {
+			return err
+		}
+		if result.Health == "failed" || result.Health == "stale" {
+			return errors.New("backup health is not current; inspect status")
+		}
+		return nil
+	case "notify-test":
+		if len(a) != 2 {
+			return errors.New("usage: notify-test PROJECT")
+		}
+		return e.NotifyTest(ctx, a[1])
 	case "snapshots":
 		if len(a) != 2 {
 			return errors.New("usage: snapshots PROJECT")
@@ -91,6 +167,19 @@ func run(ctx context.Context, args []string) error {
 		return json.NewEncoder(os.Stdout).Encode(snapshots)
 	case "check":
 		return e.Check(ctx)
+	case "rehearse":
+		if len(a) != 6 || a[5] != "--confirm" {
+			return errors.New("usage: rehearse PROJECT FULL_SNAPSHOT_ID NEW_TARGET PLAN.json --confirm")
+		}
+		plan, err := engine.LoadRecoveryPlan(a[4])
+		if err != nil {
+			return err
+		}
+		report, err := e.Rehearse(ctx, a[1], a[2], a[3], plan)
+		if report != "" {
+			fmt.Println("Recovery report:", report)
+		}
+		return err
 	case "restore":
 		if len(a) != 5 || a[4] != "--confirm" {
 			return errors.New("usage: restore PROJECT SNAPSHOT NEW_TARGET --confirm (target must be new or empty)")

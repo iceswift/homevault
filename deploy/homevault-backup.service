@@ -1,12 +1,17 @@
 [Unit]
-Description=HomeVault synthetic backup
+Description=HomeVault verified backup job (reviewable example)
+Wants=network-online.target
+After=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/homevault --config /etc/homevault/homevault.json backup synthetic
+ExecStart=/usr/local/bin/homevault --config /etc/homevault/homevault.json --timeout 2h job-backup synthetic
 User=homevault
 Group=homevault
 UMask=0077
+Environment=RCLONE_CONFIG=/var/lib/homevault/private/rclone.conf
+StateDirectory=homevault
+StateDirectoryMode=0700
 Nice=10
 IOSchedulingClass=best-effort
 IOSchedulingPriority=7
@@ -17,3 +22,6 @@ ProtectHome=true
 ReadWritePaths=/var/lib/homevault
 # Add the repository/cache/staging paths required by your reviewed configuration.
 TimeoutStartSec=3h
+TimeoutStopSec=30s
+# Never point this example at an old frozen capture. A real app's scheduled
+# adapter must create a fresh consistent capture before invoking job-backup.

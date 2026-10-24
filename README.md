@@ -10,7 +10,15 @@ A small, open-source Go CLI/TUI that orchestrates encrypted Restic backups. No w
 - Restore requires an explicit full snapshot ID and a new/empty destination; configured source, state, secret and repository paths are protected.
 - Keyboard TUI: arrows select project; `b` backup, `s` snapshots, `c` repository check, `q` quit. Quitting cancels interactive work; scheduled CLI work runs independently via systemd.
 
-Database-aware preparation, retention/pruning, notification delivery, OAuth wizard, persistent job history and automatic scheduler installation are **not implemented** yet. This version accepts file directories only. Never point it directly at a running PostgreSQL data directory or assume copying live SQLite files is a consistent database backup. Produce a validated dump/online backup first.
+Experimental Linux database preparation now supports SQLite online backup and PostgreSQL custom dumps before Restic runs. See [database configuration and limits](docs/DATABASE-BACKUPS.md). Database exports and attached files are not a shared atomic application snapshot; coordinate application writes externally when needed. Never point file paths directly at running PostgreSQL storage or copy live SQLite files as ordinary files.
+
+Experimental [backup jobs and alerts](docs/SCHEDULING-ALERTS.md) provide persisted backup/check status, the latest 32 attempts, freshness checks, optional minimal Discord notifications and reviewable systemd templates. They are not installed/enabled automatically. Plain backup and rehearsal remain distinct from a scheduled job's status.
+
+Retention/pruning, OAuth wizard and automatic scheduler installation are **not implemented** yet. A real application still needs a reviewed live-capture plan; do not schedule repeated backups of a frozen one-time copy.
+
+The experimental Linux [fresh SQLite capture adapter](docs/FRESH-CAPTURE.md) supports a pinned single-container deployment, maintenance-window gating, DB+WAL/media capture under the job lock, independent resume attempts and a config-free recovery helper. A live plan, exclusive-writer review, private webhook and explicit service activation are still required; no production timer is enabled automatically.
+
+Experimental Linux [recovery rehearsal](docs/RECOVERY-REHEARSAL.md) can restore a snapshot, start a constrained application with an optional [ephemeral PostgreSQL container](docs/POSTGRES-RECOVERY.md), run explicit health/database/media/login checks and write a cleanup-aware report. Arbitrary multi-service stacks and production-project onboarding are not implemented; synthetic proof is not evidence that your production app can recover.
 
 ## Build and verify
 

@@ -18,6 +18,8 @@ OAuth client credentials and access/refresh tokens are stored in a private rclon
 
 This installation does not send backup contents or OAuth tokens to a HomeVault-operated central service. Its Google API access is for the backup/restore functions described here, not advertising, data resale or training AI models. HomeVault currently implements no advertising or analytics collection. Google processes requests under its own applicable terms and privacy practices. If these pages are hosted publicly, the hosting provider may process ordinary web access logs separately from the backup application.
 
+The software also supports optional operator-configured Discord notifications. When enabled, these send only the configured project label and generic job/health events to the operator's selected Discord channel; backup contents, OAuth tokens, recovery passwords and session cookies are not included. Notifications are not enabled automatically and are not a HomeVault-operated telemetry service. The personal installation described here has not enabled this new notification integration.
+
 ## Retention, revocation and deletion
 
 The current installation does not enable automatic backup pruning. Backup data remains in the chosen storage until the operator removes it. The operator can revoke HomeVault's access in Google Account third-party connections; revocation does not itself delete existing backup files. To remove backups, delete the dedicated backup folder from Drive and manage Trash according to Google's interface. Local credentials, caches, source exports and restored files are managed separately on the operator's machine.

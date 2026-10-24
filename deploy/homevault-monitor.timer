@@ -1,0 +1,10 @@
+[Unit]
+Description=Check HomeVault backup freshness hourly (example)
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+AccuracySec=1m
+
+[Install]
+WantedBy=timers.target

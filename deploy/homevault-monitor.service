@@ -1,0 +1,19 @@
+[Unit]
+Description=HomeVault backup freshness and notification check (example)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/homevault --config /etc/homevault/homevault.json --timeout 30s monitor synthetic --max-age 36h
+User=homevault
+Group=homevault
+UMask=0077
+StateDirectory=homevault
+StateDirectoryMode=0700
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/homevault
+TimeoutStartSec=1m

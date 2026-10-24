@@ -1,0 +1,11 @@
+[Unit]
+Description=Check expired capture guard and backup freshness hourly (example)
+
+[Timer]
+OnCalendar=hourly
+Unit=homevault-capture-monitor.service
+Persistent=true
+AccuracySec=1m
+
+[Install]
+WantedBy=timers.target

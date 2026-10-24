@@ -18,6 +18,7 @@ import (
 
 	"homevault/internal/config"
 	"homevault/internal/lock"
+	"homevault/internal/notify"
 )
 
 type Snapshot struct {
@@ -32,10 +33,12 @@ type Snapshot struct {
 type runner func(context.Context, []string, []string, bool) ([]byte, error)
 
 type Engine struct {
-	cfg    config.Config
-	binary string
-	rclone string
-	run    runner
+	cfg              config.Config
+	binary           string
+	rclone           string
+	run              runner
+	sendNotification func(context.Context, string, string) error
+	armPauseGuard    func(string, string) error
 }
 
 var snapshotID = regexp.MustCompile(`^[0-9a-fA-F]{64}$`)
@@ -66,11 +69,18 @@ func New(cfg config.Config) (*Engine, error) {
 	// Callers cannot mutate an engine's policy after construction through slices.
 	projects := make([]config.Project, len(cfg.Projects))
 	for i, project := range cfg.Projects {
-		projects[i] = config.Project{Name: project.Name, Paths: append([]string(nil), project.Paths...)}
+		projects[i] = project
+		projects[i].Paths = append([]string(nil), project.Paths...)
+		projects[i].Databases = append([]config.Database(nil), project.Databases...)
 	}
 	cfg.Projects = projects
 	engine := &Engine{cfg: cfg, binary: binary, rclone: rclone}
 	engine.run = engine.execute
+	engine.armPauseGuard = startPauseGuardian
+	notifier := notify.New()
+	engine.sendNotification = func(ctx context.Context, project, event string) error {
+		return notifier.Send(ctx, engine.cfg.DiscordWebhookFile, project, event)
+	}
 	return engine, nil
 }
 
@@ -87,18 +97,33 @@ func (e *Engine) Backup(ctx context.Context, projectName string) error {
 	if err != nil {
 		return err
 	}
-	return e.withLock(ctx, func() error {
-		for _, source := range project.Paths {
-			info, err := os.Stat(source)
-			if err != nil || !info.IsDir() {
-				return fmt.Errorf("project %s source must be an existing directory before backup", project.Name)
-			}
+	if project.CaptureRequired {
+		return errors.New("project requires capture-backup; plain backup refused")
+	}
+	return e.withLock(ctx, func() error { return e.backupLocked(ctx, project) })
+}
+
+func (e *Engine) backupLocked(ctx context.Context, project config.Project) (result error) {
+	for _, source := range project.Paths {
+		info, err := os.Stat(source)
+		if err != nil || !info.IsDir() {
+			return fmt.Errorf("project %s source must be an existing directory before backup", project.Name)
 		}
-		args := []string{"backup", "--tag", projectTag(project.Name), "--"}
-		args = append(args, project.Paths...)
-		_, err := e.command(ctx, "backup", false, args...)
+	}
+	stage, err := e.prepareDatabases(ctx, project)
+	if err != nil {
 		return err
-	})
+	}
+	if stage != "" {
+		defer func() { result = errors.Join(result, os.RemoveAll(stage)) }()
+	}
+	args := []string{"backup", "--tag", projectTag(project.Name), "--"}
+	args = append(args, project.Paths...)
+	if stage != "" {
+		args = append(args, stage)
+	}
+	_, err = e.command(ctx, "backup", false, args...)
+	return err
 }
 
 func (e *Engine) Snapshots(ctx context.Context, projectName string) (snapshots []Snapshot, err error) {
@@ -132,38 +157,40 @@ func (e *Engine) Restore(ctx context.Context, projectName, id, target string) er
 	if !snapshotID.MatchString(id) {
 		return errors.New("restore requires an explicit complete 64-character hexadecimal snapshot ID")
 	}
-	return e.withLock(ctx, func() error {
-		if err := e.validateRestoreTarget(target); err != nil {
-			return err
-		}
-		snapshots, err := e.snapshots(ctx, projectName)
-		if err != nil {
-			return err
-		}
-		found := false
-		for _, snapshot := range snapshots {
-			if strings.EqualFold(snapshot.ID, id) {
-				found = true
-				id = snapshot.ID
-				break
-			}
-		}
-		if !found {
-			return errors.New("snapshot does not belong to the selected project or no longer exists")
-		}
-		// Recheck immediately before creating/writing the destination.
-		if err := e.validateRestoreTarget(target); err != nil {
-			return err
-		}
-		if err := os.MkdirAll(target, 0700); err != nil {
-			return errors.New("cannot create restore target directory")
-		}
-		if err := emptyDirectory(target); err != nil {
-			return err
-		}
-		_, err = e.command(ctx, "restore", false, "restore", id, "--target", target, "--overwrite", "never")
+	return e.withLock(ctx, func() error { return e.restoreLocked(ctx, projectName, id, target) })
+}
+
+func (e *Engine) restoreLocked(ctx context.Context, projectName, id, target string) error {
+	if err := e.validateRestoreTarget(target); err != nil {
 		return err
-	})
+	}
+	snapshots, err := e.snapshots(ctx, projectName)
+	if err != nil {
+		return err
+	}
+	found := false
+	for _, snapshot := range snapshots {
+		if strings.EqualFold(snapshot.ID, id) {
+			found = true
+			id = snapshot.ID
+			break
+		}
+	}
+	if !found {
+		return errors.New("snapshot does not belong to the selected project or no longer exists")
+	}
+	// Recheck immediately before creating/writing the destination.
+	if err := e.validateRestoreTarget(target); err != nil {
+		return err
+	}
+	if err := os.MkdirAll(target, 0700); err != nil {
+		return errors.New("cannot create restore target directory")
+	}
+	if err := emptyDirectory(target); err != nil {
+		return err
+	}
+	_, err = e.command(ctx, "restore", false, "restore", id, "--target", target, "--overwrite", "never")
+	return err
 }
 
 func (e *Engine) snapshots(ctx context.Context, projectName string) ([]Snapshot, error) {
@@ -197,14 +224,20 @@ func (e *Engine) validateRestoreTarget(target string) error {
 	if err := config.ValidateDestination(target); err != nil {
 		return fmt.Errorf("restore target: %w", err)
 	}
-	protected := []string{e.cfg.StateDir, e.cfg.PasswordFile}
+	protected := []string{e.cfg.StateDir, e.cfg.PasswordFile, e.cfg.DiscordWebhookFile}
 	if filepath.IsAbs(e.cfg.Repository) {
 		protected = append(protected, e.cfg.Repository)
 	}
 	for _, project := range e.cfg.Projects {
 		protected = append(protected, project.Paths...)
+		for _, db := range project.Databases {
+			protected = append(protected, db.Source, db.PasswordFile)
+		}
 	}
 	for _, path := range protected {
+		if path == "" {
+			continue
+		}
 		contains, err := config.Contains(target, path)
 		if err != nil {
 			return errors.New("cannot resolve restore target")
