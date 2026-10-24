@@ -37,6 +37,59 @@ func fixture(t *testing.T) *Engine {
 	return e
 }
 
+func TestExplicitRcloneConfigIsolationAndLock(t *testing.T) {
+	e := fixture(t)
+	file := filepath.Join(t.TempDir(), "private-rclone.conf")
+	if err := os.WriteFile(file, []byte("synthetic config only"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	e.cfg.RcloneConfigFile = file
+	e.rclone = "synthetic-rclone"
+	t.Setenv("RCLONE_CONFIG", "other-account")
+	t.Setenv("RCLONE_CONFIG_GDRIVE_TOKEN", "other-account-token")
+	t.Setenv("RCLONE_DRIVE_TOKEN", "other-token")
+	e.run = func(_ context.Context, _ []string, env []string, _ bool) ([]byte, error) {
+		count := 0
+		for _, entry := range env {
+			if strings.HasPrefix(entry, "RCLONE_") {
+				if entry != "RCLONE_CONFIG="+file {
+					t.Fatal("ambient rclone override inherited")
+				}
+				count++
+			}
+		}
+		if count != 1 {
+			t.Fatal("explicit credential config missing")
+		}
+		if _, err := lock.AcquireCredential(file); !errors.Is(err, lock.ErrLocked) {
+			t.Fatal("credential refresh not locked")
+		}
+		return nil, nil
+	}
+	if _, err := e.command(context.Background(), "synthetic config check", false, "check"); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.validateRestoreTarget(filepath.Dir(file)); err == nil {
+		t.Fatal("restore can overwrite credential config")
+	}
+}
+
+func TestExplicitCredentialPathChangesRepositoryProofIdentity(t *testing.T) {
+	e := fixture(t)
+	e.rclone = "synthetic-rclone"
+	legacy := e.repositoryID()
+	e.cfg.RcloneConfigFile = filepath.Join(t.TempDir(), "rclone.conf")
+	first := e.repositoryID()
+	e.cfg.RcloneConfigFile = filepath.Join(t.TempDir(), "rclone.conf")
+	if first == legacy || first == e.repositoryID() {
+		t.Fatal("credential path change reused previous repository proof")
+	}
+	e.cfg.RcloneConfigFile = ""
+	if legacy != e.repositoryID() {
+		t.Fatal("legacy identity changed")
+	}
+}
+
 func TestBackupArgumentsEnvironmentAndExplicitInit(t *testing.T) {
 	e := fixture(t)
 	t.Setenv("RESTIC_PASSWORD", "never-propagate")

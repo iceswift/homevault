@@ -7,6 +7,8 @@
 *.key
 *.secret
 rclone.conf
+.oauth-pending-*
+.homevault-credential-*/
 __pycache__/
 *.pyc
 

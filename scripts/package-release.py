@@ -12,7 +12,7 @@ import tarfile
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ['ONBOARDING.md', 'DATABASE-BACKUPS.md', 'FRESH-CAPTURE.md',
         'RECOVERY-REHEARSAL.md', 'POSTGRES-RECOVERY.md', 'SCHEDULING-ALERTS.md',
-        'RETENTION.md', 'PRUNE.md', 'TESTING.md']
+        'RETENTION.md', 'PRUNE.md', 'DRIVE-OAUTH.md', 'GO-OAUTH-LICENSE.txt', 'TESTING.md']
 
 def add(tar, name, data, mode=0o644):
     info = tarfile.TarInfo(name)

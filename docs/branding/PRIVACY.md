@@ -14,6 +14,8 @@ Selected source files are read on the operator's machine. Restic encrypts backup
 
 OAuth client credentials and access/refresh tokens are stored in a private rclone configuration on the operator's machine. The repository recovery password is also stored locally in a separate private file. The personal deployment restricts access using operating-system permissions. Backup repository data is stored in the Google account authorized by the operator. Protecting the account, server and recovery material remains essential.
 
+The optional new desktop OAuth wizard performs consent directly with Google using PKCE and a temporary loopback callback. It saves credentials locally, does not request an identity/profile/Gmail scope, and does not read the account's email for its status display. Account selection occurs in the browser. Its optional online status check performs a shallow directory listing through rclone but does not display or retain directory names. It does not change existing authorization automatically or send tokens to the public information website.
+
 ## Sharing and other uses
 
 This installation does not send backup contents or OAuth tokens to a HomeVault-operated central service. Its Google API access is for the backup/restore functions described here, not advertising, data resale or training AI models. HomeVault currently implements no advertising or analytics collection. Google processes requests under its own applicable terms and privacy practices. If these pages are hosted publicly, the hosting provider may process ordinary web access logs separately from the backup application.

@@ -20,6 +20,7 @@ func runSetup(args []string) error {
 	source := fs.String("source", "", "existing directory of files/media; exclude live databases")
 	repo := fs.String("repository", "", "absolute local repository or configured rclone remote")
 	key := fs.String("password-file", "", "existing private repository key; never regenerated")
+	rcloneConfig := fs.String("rclone-config", "", "optional absolute private rclone config from Drive onboarding")
 	db := fs.String("sqlite", "", "optional separate SQLite database file")
 	capture := fs.Bool("capture-required", false, "require reviewed capture-backup workflow")
 	if err := fs.Parse(args[1:]); err != nil {
@@ -32,7 +33,7 @@ func runSetup(args []string) error {
 	if *db != "" {
 		p.Databases = []config.Database{{Name: "main", Type: "sqlite", Source: *db}}
 	}
-	cfg := config.Config{Version: config.CurrentVersion, StateDir: filepath.Join(args[0], "state"), Repository: *repo, PasswordFile: *key, Projects: []config.Project{p}}
+	cfg := config.Config{Version: config.CurrentVersion, StateDir: filepath.Join(args[0], "state"), Repository: *repo, PasswordFile: *key, RcloneConfigFile: *rcloneConfig, Projects: []config.Project{p}}
 	if err := setupProject(args[0], cfg); err != nil {
 		return err
 	}
@@ -54,6 +55,9 @@ func setupProject(root string, cfg config.Config) error {
 	}
 	project := cfg.Projects[0]
 	protected := append([]string{cfg.PasswordFile}, project.Paths...)
+	if cfg.RcloneConfigFile != "" {
+		protected = append(protected, cfg.RcloneConfigFile)
+	}
 	if filepath.IsAbs(cfg.Repository) {
 		protected = append(protected, cfg.Repository)
 	}

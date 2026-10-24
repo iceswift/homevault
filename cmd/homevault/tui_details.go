@@ -2,11 +2,21 @@ package main
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 	"time"
 
+	"homevault/internal/drive"
 	"homevault/internal/engine"
 )
+
+func (m model) localDriveStatus() resultMsg {
+	if m.cfg.RcloneConfigFile == "" {
+		return resultMsg{text: "No explicit rclone_config_file configured. Use drive-setup/drive-auth and review the configuration path before deployment."}
+	}
+	status, err := drive.Status(m.ctx, filepath.Dir(m.cfg.RcloneConfigFile), false, "")
+	return resultMsg{text: fmt.Sprintf("Drive remote: %s\nProject: %s\nRequested scope: %s\nLocal state: %s\nAccess expiry (UTC): %s\nRefresh token available: %t\nNo live check, account identity check or backup/restore proof.\nUse drive-status DIRECTORY --online for an explicit reachability check.", status.Remote, status.Project, status.RequestedScope, status.State, displayTime(status.AccessExpires), status.RefreshAvailable), err: err}
+}
 
 func (m model) pageSize() int {
 	height := m.height

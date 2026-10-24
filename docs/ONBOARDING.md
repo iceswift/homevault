@@ -57,8 +57,9 @@ configuration is overwritten. Failed partial output is retained for inspection;
 retry in a new directory. Linux permissions are 0700 directories/0600 files;
 Windows users must independently protect ACLs.
 
-This is a guided starter, not an interactive OAuth wizard or an automatic database
-detector. Files-only source directories must exclude live databases. Review
+This is a guided project starter, not an automatic database detector. The separate
+[Drive OAuth wizard](DRIVE-OAUTH.md) prepares authorization before project setup;
+use --rclone-config to attach its private config. Files-only sources must exclude live databases. Review
 [database preparation](DATABASE-BACKUPS.md) for PostgreSQL settings and credentials.
 Capture-required projects additionally need a reviewed pinned [capture plan](FRESH-CAPTURE.md)
 and approved pause window; setup does not create or activate that plan.

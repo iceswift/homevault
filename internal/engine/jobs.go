@@ -108,7 +108,11 @@ func (e *Engine) jobPath(project string) string {
 	return filepath.Join(e.cfg.StateDir, "jobs", project+".json")
 }
 func (e *Engine) repositoryID() string {
-	h := sha256.Sum256([]byte(e.cfg.Repository))
+	identity := e.cfg.Repository
+	if e.rclone != "" && e.cfg.RcloneConfigFile != "" {
+		identity += "\x00rclone-config\x00" + e.cfg.RcloneConfigFile
+	}
+	h := sha256.Sum256([]byte(identity))
 	return hex.EncodeToString(h[:])
 }
 func (e *Engine) JobStatus(project string) (JobStatus, error) {

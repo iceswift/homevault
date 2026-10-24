@@ -1,6 +1,6 @@
 # HomeVault
 
-A small, open-source Go CLI/TUI that orchestrates encrypted Restic backups. No web server, listening port, or always-running HomeVault daemon. Early development software: use generated fixtures first, keep independent backups, and prove restore before trusting it with an application.
+A small, open-source Go CLI/TUI that orchestrates encrypted Restic backups. No public web service or always-running HomeVault daemon; explicit desktop OAuth temporarily uses a loopback-only callback. Early development software: use generated fixtures first, keep independent backups, and prove restore before trusting it with an application.
 
 ## Implemented scope
 
@@ -17,7 +17,7 @@ Experimental Linux database preparation now supports SQLite online backup and Po
 
 Experimental [backup jobs and alerts](docs/SCHEDULING-ALERTS.md) provide persisted backup/check status, the latest 32 attempts, freshness checks, optional minimal Discord notifications and reviewable systemd templates. They are not installed/enabled automatically. Plain backup and rehearsal remain distinct from a scheduled job's status.
 
-[Retention](docs/RETENTION.md) shows daily/weekly/monthly keep reasons and candidates without deleting anything. A separate experimental manual apply command requires a saved matching review, a preserved kept ID and explicit confirmation; it removes snapshot records only. [Reviewed prune](docs/PRUNE.md) separately removes unused packs repository-wide, without repacking, using tested Restic 0.19.1. OAuth wizard and automatic scheduler installation are **not implemented** yet. A real application still needs a reviewed live-capture plan; do not schedule repeated backups of a frozen one-time copy.
+[Retention](docs/RETENTION.md) shows daily/weekly/monthly keep reasons and candidates without deleting anything. A separate experimental manual apply command requires a saved matching review, a preserved kept ID and explicit confirmation; it removes snapshot records only. [Reviewed prune](docs/PRUNE.md) separately removes unused packs repository-wide, without repacking, using tested Restic 0.19.1. The experimental [Drive OAuth wizard](docs/DRIVE-OAUTH.md) prepares private config, guides PKCE desktop consent and checks status; Google Cloud client creation and automatic scheduler installation remain manual. A real application still needs a reviewed live-capture plan; do not schedule repeated backups of a frozen one-time copy.
 
 The experimental Linux [fresh SQLite capture adapter](docs/FRESH-CAPTURE.md) supports a pinned single-container deployment, maintenance-window gating, DB+WAL/media capture under the job lock, independent resume attempts and a config-free recovery helper. A live plan, exclusive-writer review, private webhook and explicit service activation are still required; no production timer is enabled automatically.
 
@@ -68,7 +68,7 @@ homevault --config /absolute/homevault.json tui
 
 ## Google Drive
 
-HomeVault does not require a Drive connector in the chat application. Configure rclone locally via its browser OAuth flow; do not paste passwords, OAuth tokens, rclone.conf or repository keys into chat or Git. Current rclone documentation recommends a dedicated Google OAuth client because the shared client is being retired during 2026. Prefer the narrow `drive.file` scope for a dedicated backup folder if its limitations suit the setup.
+HomeVault does not require a Drive connector in the chat application. Use the [private Drive wizard](docs/DRIVE-OAUTH.md) with your own downloaded Desktop OAuth client, or configure rclone separately. Do not paste passwords, OAuth tokens, rclone.conf or repository keys into chat or Git. The wizard uses the narrow `drive.file` scope for app-created/authorized files; review its limits before adopting an existing repository.
 
 After separately authorizing the intended account and testing rclone, set `repository` to `rclone:gdrive:HomeVault/synthetic`. Restic supplies encryption; an additional rclone crypt layer is unnecessary here. Cloud transfers are not automatically initiated by opening a Drive browser tab. Start with synthetic fixtures and perform a complete cloud restore before enabling real data.
 

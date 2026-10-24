@@ -1,9 +1,27 @@
 package config
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 )
+
+func TestExplicitRcloneConfigProtectedFromSources(t *testing.T) {
+	cfg := fixture(t)
+	root := t.TempDir()
+	file := filepath.Join(root, "rclone.conf")
+	if err := os.WriteFile(file, []byte("fixture private config"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	cfg.RcloneConfigFile = file
+	if err := cfg.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	cfg.Projects[0].Paths = []string{root}
+	if err := cfg.Validate(); err == nil {
+		t.Fatal("rclone token can enter backup sources")
+	}
+}
 
 func TestDatabasePolicy(t *testing.T) {
 	cfg := fixture(t)

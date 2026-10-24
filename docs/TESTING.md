@@ -4,6 +4,8 @@ HomeVault is an experimental backup/recovery orchestrator, not a certified produ
 
 ## Checks performed
 
+- Experimental Drive wizard tests use loopback callbacks and mocked Google token exchange: S256 PKCE, state/issuer/host/replay checks, consent failures, cancellation, redaction and no overwrite. Config/source/restore isolation and clearing ambient rclone account overrides are tested. No real Google account was authorized or refreshed during these tests; full live consent remains separate verification. See DRIVE-OAUTH.md.
+
 - Go unit tests and go vet passed on Windows; Linux configuration, engine and cross-process locking tests also passed.
 - Real Restic local initialization, backup, snapshot listing, repository check and byte-identical restore passed with generated fixtures.
 - Restore with the original source absent passed. Nonempty restore destinations were refused.

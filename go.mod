@@ -4,7 +4,10 @@ go 1.24.0
 
 toolchain go1.24.5
 
-require github.com/charmbracelet/bubbletea v1.3.10
+require (
+	github.com/charmbracelet/bubbletea v1.3.10
+	golang.org/x/oauth2 v0.34.0
+)
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect

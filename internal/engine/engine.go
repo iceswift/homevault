@@ -224,7 +224,7 @@ func (e *Engine) validateRestoreTarget(target string) error {
 	if err := config.ValidateDestination(target); err != nil {
 		return fmt.Errorf("restore target: %w", err)
 	}
-	protected := []string{e.cfg.StateDir, e.cfg.PasswordFile, e.cfg.DiscordWebhookFile}
+	protected := []string{e.cfg.StateDir, e.cfg.PasswordFile, e.cfg.DiscordWebhookFile, e.cfg.RcloneConfigFile}
 	if filepath.IsAbs(e.cfg.Repository) {
 		protected = append(protected, e.cfg.Repository)
 	}
@@ -296,7 +296,14 @@ func (e *Engine) withLock(ctx context.Context, action func() error) (err error) 
 
 func projectTag(name string) string { return "homevault:" + name }
 
-func (e *Engine) command(ctx context.Context, action string, capture bool, commandArgs ...string) ([]byte, error) {
+func (e *Engine) command(ctx context.Context, action string, capture bool, commandArgs ...string) (output []byte, resultErr error) {
+	if e.rclone != "" && e.cfg.RcloneConfigFile != "" {
+		credentialLock, err := lock.AcquireCredential(e.cfg.RcloneConfigFile)
+		if err != nil {
+			return nil, errors.New("rclone credential file is busy or its lock needs manual inspection")
+		}
+		defer func() { resultErr = errors.Join(resultErr, credentialLock.Release()) }()
+	}
 	args := []string{"--repo", e.cfg.Repository, "--cache-dir", filepath.Join(e.cfg.StateDir, "cache")}
 	if e.rclone != "" {
 		args = append(args, "-o", "rclone.program="+e.rclone)
@@ -305,11 +312,18 @@ func (e *Engine) command(ctx context.Context, action string, capture bool, comma
 	var env []string
 	for _, entry := range os.Environ() {
 		key, _, _ := strings.Cut(entry, "=")
-		if !strings.HasPrefix(strings.ToUpper(key), "RESTIC_") {
+		upper := strings.ToUpper(key)
+		if e.cfg.RcloneConfigFile != "" && strings.HasPrefix(upper, "RCLONE_") {
+			continue
+		}
+		if !strings.HasPrefix(upper, "RESTIC_") {
 			env = append(env, entry)
 		}
 	}
 	env = append(env, "RESTIC_PASSWORD_FILE="+e.cfg.PasswordFile)
+	if e.cfg.RcloneConfigFile != "" {
+		env = append(env, "RCLONE_CONFIG="+e.cfg.RcloneConfigFile)
+	}
 	data, err := e.run(ctx, args, env, capture)
 	if err == nil {
 		return data, nil

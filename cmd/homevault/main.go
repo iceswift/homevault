@@ -34,6 +34,7 @@ func run(ctx context.Context, args []string) error {
 	file := fs.String("config", "homevault.json", "configuration file")
 	timeout := fs.Duration("timeout", 2*time.Hour, "operation timeout")
 	fs.Usage = func() {
+		fmt.Fprintln(fs.Output(), "Drive onboarding: drive-setup NEW_DIRECTORY --client-json FILE; drive-auth DIRECTORY --confirm; drive-status DIRECTORY [--online]")
 		fmt.Fprintln(fs.Output(), "Unused-pack cleanup: prune-plan; prune-save NEW_PLAN.json; prune-apply PLAN.json --repository-wide --preserve VERIFIED_FULL_ID --confirm")
 		fmt.Fprintln(fs.Output(), "Reviewed retention: retention-save PROJECT NEW_PLAN.json [policy flags]; retention-apply PROJECT PLAN.json --preserve VERIFIED_KEPT_FULL_ID --confirm (removes snapshot records; no prune)")
 		fmt.Fprintln(fs.Output(), "Project setup: setup NEW_DIRECTORY --project NAME --source ABS_DIRECTORY --repository REPOSITORY --password-file EXISTING_KEY [--sqlite ABS_DB] [--capture-required]")
@@ -71,6 +72,14 @@ func run(ctx context.Context, args []string) error {
 	}
 	if a[0] == "setup" {
 		return runSetup(a[1:])
+	}
+	if a[0] == "drive-setup" || a[0] == "drive-auth" || a[0] == "drive-status" {
+		if *timeout <= 0 {
+			return errors.New("timeout must be positive")
+		}
+		ctx, cancel := context.WithTimeout(ctx, *timeout)
+		defer cancel()
+		return runDrive(ctx, a)
 	}
 	if *timeout <= 0 {
 		return errors.New("timeout must be positive")
@@ -388,7 +397,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.selected+1 < len(m.cfg.Projects) {
 				m.selected++
 			}
-		case "b", "s", "c", "h", "p":
+		case "b", "s", "c", "h", "p", "d":
 			if m.busy || len(m.cfg.Projects) == 0 {
 				return m, nil
 			}
@@ -403,6 +412,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				case "h":
 					state, err := m.e.JobStatus(name)
 					return resultMsg{formatJobHistory(state), err}
+				case "d":
+					return m.localDriveStatus()
 				case "p":
 					plan, err := m.e.PlanRetention(m.ctx, name, engine.RetentionPolicy{Daily: 7, Weekly: 4, Monthly: 12})
 					return resultMsg{formatRetention(plan), err}
@@ -436,7 +447,7 @@ func (m model) View() string {
 		fmt.Fprintf(&b, "%s%s\n", cursor, p.Name)
 	}
 	b.WriteString("\n↑/↓ select · b backup+check · h job history · s snapshots · c check\n")
-	b.WriteString("p retention preview · g recovery guide · PgUp/PgDn scroll · q quit\n")
+	b.WriteString("p retention preview · d Drive status · g recovery guide · PgUp/PgDn scroll · q quit\n")
 	if m.busy {
 		b.WriteString("Operation in progress\n")
 	}

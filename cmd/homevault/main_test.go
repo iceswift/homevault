@@ -72,6 +72,28 @@ func TestPruneApplyRequiresScopeAndConfirmation(t *testing.T) {
 	}
 }
 
+func TestDriveOnboardingBeforeBackupConfiguration(t *testing.T) {
+	parent := t.TempDir()
+	client := filepath.Join(parent, "desktop.json")
+	root := filepath.Join(parent, "drive")
+	data := []byte(`{"installed":{"client_id":"123-fixture.apps.googleusercontent.com","client_secret":"fixture-client-secret","project_id":"homevault-fixture"}}`)
+	if err := os.WriteFile(client, data, 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := run(context.Background(), []string{"drive-setup", root, "--client-json", client, "--project-id", "homevault-fixture"}); err != nil {
+		t.Fatal(err)
+	}
+	err := run(context.Background(), []string{"drive-auth", root})
+	if err == nil || !strings.Contains(err.Error(), "--confirm") {
+		t.Fatal("authorization started without explicit confirmation", err)
+	}
+	m := model{ctx: context.Background(), cfg: config.Config{RcloneConfigFile: filepath.Join(root, "rclone.conf")}}
+	status := m.localDriveStatus()
+	if status.err != nil || !strings.Contains(status.text, "authorization_required") || strings.Contains(status.text, "fixture-client-secret") {
+		t.Fatal("bad safe TUI connection status", status.err)
+	}
+}
+
 func TestDemoSetupRefusesExistingDirectory(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "lab")
 	if err := setupDemo(root); err != nil {

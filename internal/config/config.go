@@ -24,6 +24,7 @@ type Config struct {
 	PasswordFile       string    `json:"password_file"`
 	ResticBinary       string    `json:"restic_binary,omitempty"`
 	RcloneBinary       string    `json:"rclone_binary,omitempty"`
+	RcloneConfigFile   string    `json:"rclone_config_file,omitempty"`
 	PythonBinary       string    `json:"python_binary,omitempty"`
 	PgDumpBinary       string    `json:"pg_dump_binary,omitempty"`
 	PgRestoreBinary    string    `json:"pg_restore_binary,omitempty"`
@@ -126,6 +127,12 @@ func (cfg Config) Validate() error {
 			return errors.New("binary paths must not contain control characters")
 		}
 	}
+	if cfg.RcloneConfigFile != "" {
+		info, err := os.Lstat(cfg.RcloneConfigFile)
+		if ValidateDestination(cfg.RcloneConfigFile) != nil || err != nil || !info.Mode().IsRegular() || runtime.GOOS != "windows" && info.Mode().Perm()&0077 != 0 {
+			return errors.New("rclone_config_file must be an existing absolute private regular file")
+		}
+	}
 	if len(cfg.Projects) == 0 {
 		return errors.New("at least one project is required")
 	}
@@ -169,7 +176,7 @@ func (cfg Config) Validate() error {
 			}
 			// Sources may be missing after a disk failure. Restore and repository
 			// inspection must remain available; Backup checks source availability.
-			for _, protected := range []string{cfg.StateDir, cfg.PasswordFile, cfg.DiscordWebhookFile} {
+			for _, protected := range []string{cfg.StateDir, cfg.PasswordFile, cfg.DiscordWebhookFile, cfg.RcloneConfigFile} {
 				if protected == "" {
 					continue
 				}
@@ -207,7 +214,7 @@ func (cfg Config) Validate() error {
 			if db.Type == "postgres" {
 				p = db.PasswordFile
 			}
-			for _, protected := range []string{cfg.StateDir, cfg.PasswordFile, cfg.Repository, cfg.DiscordWebhookFile} {
+			for _, protected := range []string{cfg.StateDir, cfg.PasswordFile, cfg.Repository, cfg.DiscordWebhookFile, cfg.RcloneConfigFile} {
 				if !filepath.IsAbs(protected) {
 					continue
 				}
