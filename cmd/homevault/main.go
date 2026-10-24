@@ -34,6 +34,7 @@ func run(ctx context.Context, args []string) error {
 	file := fs.String("config", "homevault.json", "configuration file")
 	timeout := fs.Duration("timeout", 2*time.Hour, "operation timeout")
 	fs.Usage = func() {
+		fmt.Fprintln(fs.Output(), "Retention preview: retention-plan PROJECT [--keep-daily 7] [--keep-weekly 4] [--keep-monthly 12] (no deletion)")
 		fmt.Fprintln(fs.Output(), "Usage: homevault [--config FILE] [--timeout 2h] COMMAND\nCommands: version, demo-setup NEW_DIRECTORY, doctor, init, backup PROJECT, job-backup PROJECT, capture-check PROJECT PLAN.json, capture-backup PROJECT PLAN.json --confirm, status PROJECT, monitor PROJECT --max-age 36h, notify-test PROJECT, snapshots PROJECT, check, restore PROJECT FULL_SNAPSHOT_ID NEW_TARGET --confirm, rehearse PROJECT FULL_SNAPSHOT_ID NEW_TARGET PLAN.json --confirm, resume-paused GUARD_FILE [--force], tui")
 	}
 	if err := fs.Parse(args); err != nil {
@@ -165,6 +166,25 @@ func run(ctx context.Context, args []string) error {
 			return err
 		}
 		return json.NewEncoder(os.Stdout).Encode(snapshots)
+	case "retention-plan":
+		if len(a) < 2 {
+			return errors.New("usage: retention-plan PROJECT [--keep-daily 7] [--keep-weekly 4] [--keep-monthly 12]")
+		}
+		flags := flag.NewFlagSet("retention-plan", flag.ContinueOnError)
+		daily := flags.Int("keep-daily", 7, "occupied UTC days to keep")
+		weekly := flags.Int("keep-weekly", 4, "occupied ISO weeks to keep")
+		monthly := flags.Int("keep-monthly", 12, "occupied UTC months to keep")
+		if err := flags.Parse(a[2:]); err != nil {
+			return err
+		}
+		if flags.NArg() != 0 {
+			return errors.New("unexpected retention-plan argument")
+		}
+		plan, err := e.PlanRetention(ctx, a[1], engine.RetentionPolicy{Daily: *daily, Weekly: *weekly, Monthly: *monthly})
+		if err != nil {
+			return err
+		}
+		return json.NewEncoder(os.Stdout).Encode(plan)
 	case "check":
 		return e.Check(ctx)
 	case "rehearse":

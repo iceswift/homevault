@@ -15,3 +15,7 @@ CLI/TUI, file backups through Restic, local/cloud snapshots, guarded restore, pr
 5. Scheduled operations and retention: fresh SQLite capture, maintenance-window gate, guardian/rescue helpers and dedicated systemd templates implemented and fixture-tested. DealDoor live-source metadata preflight passed without stopping it. No services/timers enabled (owner chose preparation only). Live capture rehearsal, private webhook provisioning, source permissions and owner activation remain prerequisites. Retention/deletion remains unimplemented.
 
 Public website must label these as planned until implemented and tested. Google OAuth Production status is separate from product maturity or public launch readiness.
+
+Retention update: a project-scoped, read-only `retention-plan` preview is implemented
+with calendar buckets and protected snapshots; see RETENTION.md. Deletion/pruning
+and automatic retention execution remain unimplemented.
