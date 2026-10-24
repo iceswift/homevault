@@ -83,6 +83,18 @@ original scheduled capture time, not upload time. No new application pause was
 required. This check did not import the restored database or run the restored app.
 
 Selected root-owned host/application configuration was prepared privately by the
-owner; its cloud transfer is a separate authorization step. Live JSON-state
-capture, image availability/export, complete host reconstruction and a full
-replacement-machine drill remain pending. No new cloud schedule was enabled.
+owner. Following separate explicit authorization for that secrets payload, its
+encrypted cloud backup and independently restored manifest hashes passed.
+
+A separate JSON-state application was captured during an explicitly authorized
+brief stop of its pinned container, with an independent resume guardian. Both
+active state paths were checked against the captured mount without displaying
+environment values. The app returned healthy before upload after approximately
+7.3 seconds. Both restored state files and the manifest matched their pre-upload
+hashes; unrelated application health checks passed. This was not an application
+restore rehearsal.
+
+Image availability/export, a unified recovery catalog/bootstrap, completion of
+privileged inventory gaps, complete host reconstruction and a full replacement-
+machine drill remain pending. These selected backups do not cover every host
+file or make a bootable image. No new cloud schedule was enabled.
