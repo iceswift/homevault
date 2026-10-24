@@ -86,6 +86,9 @@ func New(cfg config.Config) (*Engine, error) {
 
 // Init explicitly creates a repository. No other operation initializes it.
 func (e *Engine) Init(ctx context.Context) error {
+	if e.cfg.RecoveryOnly {
+		return errors.New("recovery-only configuration refuses repository initialization")
+	}
 	return e.withLock(ctx, func() error {
 		_, err := e.command(ctx, "initialize repository", false, "init")
 		return err
@@ -93,6 +96,9 @@ func (e *Engine) Init(ctx context.Context) error {
 }
 
 func (e *Engine) Backup(ctx context.Context, projectName string) error {
+	if e.cfg.RecoveryOnly {
+		return errors.New("recovery-only configuration refuses backup")
+	}
 	project, err := e.cfg.Project(projectName)
 	if err != nil {
 		return err
@@ -297,6 +303,23 @@ func (e *Engine) withLock(ctx context.Context, action func() error) (err error) 
 func projectTag(name string) string { return "homevault:" + name }
 
 func (e *Engine) command(ctx context.Context, action string, capture bool, commandArgs ...string) (output []byte, resultErr error) {
+	if e.cfg.RecoveryOnly && len(commandArgs) > 0 {
+		switch commandArgs[0] {
+		case "version", "snapshots", "check", "restore", "list":
+		case "prune":
+			dry := false
+			for _, arg := range commandArgs[1:] {
+				if arg == "--dry-run" {
+					dry = true
+				}
+			}
+			if !dry {
+				return nil, errors.New("recovery-only configuration refuses prune")
+			}
+		default:
+			return nil, errors.New("recovery-only configuration refuses repository mutation")
+		}
+	}
 	if e.rclone != "" && e.cfg.RcloneConfigFile != "" {
 		credentialLock, err := lock.AcquireCredential(e.cfg.RcloneConfigFile)
 		if err != nil {

@@ -19,6 +19,7 @@ const CurrentVersion = 1
 
 type Config struct {
 	Version            int       `json:"version"`
+	RecoveryOnly       bool      `json:"recovery_only,omitempty"`
 	StateDir           string    `json:"state_dir"`
 	Repository         string    `json:"repository"`
 	PasswordFile       string    `json:"password_file"`

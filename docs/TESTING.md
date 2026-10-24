@@ -4,6 +4,8 @@ HomeVault is an experimental backup/recovery orchestrator, not a certified produ
 
 ## Checks performed
 
+- Portable-kit drills used generated credentials and official pinned age 1.3.2. Source/state/original key removal and repository relocation still allowed byte-identical recovery with a separately kept identity. A fresh network-none container also passed SQLite/media/app health/login checks with no original-machine mounts. Read-only mutation/wrong-key/tamper/overwrite guards passed. No actual user key was exported or real service stopped. See RECOVERY-KIT.md.
+
 - Experimental Drive wizard tests use loopback callbacks and mocked Google token exchange: S256 PKCE, state/issuer/host/replay checks, consent failures, cancellation, redaction and no overwrite. Config/source/restore isolation and clearing ambient rclone account overrides are tested. No real Google account was authorized or refreshed during these tests; full live consent remains separate verification. See DRIVE-OAUTH.md.
 
 - Go unit tests and go vet passed on Windows; Linux configuration, engine and cross-process locking tests also passed.

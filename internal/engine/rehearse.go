@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -66,7 +67,20 @@ func LoadRecoveryPlan(filename string) (RecoveryPlan, error) {
 		return RecoveryPlan{}, errors.New("cannot open recovery plan")
 	}
 	defer f.Close()
-	d := json.NewDecoder(io.LimitReader(f, 1024*1024+1))
+	data, err := io.ReadAll(io.LimitReader(f, 1024*1024+1))
+	if err != nil {
+		return RecoveryPlan{}, errors.New("cannot read bounded recovery plan")
+	}
+	return ParseRecoveryPlan(data)
+}
+
+// ParseRecoveryPlan validates exact in-memory bytes without staging credentials
+// or plan commands in a temporary plaintext file.
+func ParseRecoveryPlan(data []byte) (RecoveryPlan, error) {
+	if len(data) > 1024*1024 {
+		return RecoveryPlan{}, errors.New("recovery plan exceeds size limit")
+	}
+	d := json.NewDecoder(bytes.NewReader(data))
 	d.DisallowUnknownFields()
 	var p RecoveryPlan
 	if d.Decode(&p) != nil || d.Decode(new(any)) != io.EOF {

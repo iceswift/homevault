@@ -87,6 +87,11 @@ Opening the TUI/setup does not enable any timers.
 
 ## Rebuilding after losing the server
 
+The optional [portable recovery kit](RECOVERY-KIT.md) packages selected original
+credentials under age encryption and opens into a new recovery-only config. Prepare
+and independently store it before loss; no original config is needed for kit-open.
+Do not treat creating the file as proof: decrypt and run a separate restore drill.
+
 1. Obtain a reviewed HomeVault build plus Restic/rclone and compatible database tools.
 2. Recover the original repository key from off-server custody. Restore transport
    authorization privately or reauthorize the intended Drive account. A key stored

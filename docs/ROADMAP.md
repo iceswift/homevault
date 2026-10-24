@@ -16,6 +16,13 @@ CLI/TUI, file backups through Restic, local/cloud snapshots, guarded restore, pr
 
 Public website must label these as planned until implemented and tested. Google OAuth Production status is separate from product maturity or public launch readiness.
 
+Disaster recovery update: age-encrypted portable credential kits and guarded
+recovery-only configs are implemented. Generated-data drills recovered after the
+original source/key/state were removed, including a fresh network-none container
+with DB/media/app health/login checks. See RECOVERY-KIT.md. This does not certify
+actual production key custody, physical machine/cloud-account loss or production
+cutover. No actual credential kit or production timer was created/activated here.
+
 Retention update: a project-scoped, read-only `retention-plan` preview is implemented
 with calendar buckets and protected snapshots; `retention-save` and explicit manual
 `retention-apply` now support reviewed snapshot-record removal with expiry, metadata

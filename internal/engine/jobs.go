@@ -167,6 +167,9 @@ func (e *Engine) RunBackupJob(ctx context.Context, project string) error {
 type jobPreparation func(context.Context, config.Project) (config.Project, func() error, error)
 
 func (e *Engine) runBackupJob(ctx context.Context, project string, prepare jobPreparation) error {
+	if e.cfg.RecoveryOnly {
+		return errors.New("recovery-only configuration refuses backup/capture jobs")
+	}
 	p, err := e.cfg.Project(project)
 	if err != nil {
 		return err

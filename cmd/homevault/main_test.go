@@ -94,6 +94,23 @@ func TestDriveOnboardingBeforeBackupConfiguration(t *testing.T) {
 	}
 }
 
+func TestKitCommandsRequireConfirmationBeforeTools(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "recovered")
+	err := run(context.Background(), []string{"kit-open", filepath.Join(root, "missing.age"), target, "--identity-file", filepath.Join(root, "identity.txt")})
+	if err == nil || !strings.Contains(err.Error(), "--confirm") {
+		t.Fatal("kit-open accessed old config/tools without confirmation", err)
+	}
+	lab := filepath.Join(root, "lab")
+	if err := setupDemo(lab); err != nil {
+		t.Fatal(err)
+	}
+	err = run(context.Background(), []string{"--config", filepath.Join(lab, "homevault.json"), "kit-export", "synthetic", strings.Repeat("a", 64), filepath.Join(root, "new.age"), "--recipient", "not-used-without-confirm"})
+	if err == nil || !strings.Contains(err.Error(), "--confirm") {
+		t.Fatal("kit-export started without confirmation", err)
+	}
+}
+
 func TestDemoSetupRefusesExistingDirectory(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "lab")
 	if err := setupDemo(root); err != nil {

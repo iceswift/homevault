@@ -6,6 +6,8 @@
 *.test
 *.key
 *.secret
+*.age
+*.agekey
 rclone.conf
 .oauth-pending-*
 .homevault-credential-*/

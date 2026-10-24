@@ -9,3 +9,6 @@ var fixtureApp []byte
 
 //go:embed fixtures/postgres-app.cjs
 var postgresFixtureApp []byte
+
+//go:embed fixtures/disaster-drill.py
+var disasterSupervisor []byte

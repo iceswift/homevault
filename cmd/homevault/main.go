@@ -34,6 +34,7 @@ func run(ctx context.Context, args []string) error {
 	file := fs.String("config", "homevault.json", "configuration file")
 	timeout := fs.Duration("timeout", 2*time.Hour, "operation timeout")
 	fs.Usage = func() {
+		fmt.Fprintln(fs.Output(), "Portable recovery: kit-export PROJECT FULL_ID NEW_KIT.age --recipient AGE_PUBLIC_KEY --confirm; kit-open KIT.age NEW_DIRECTORY --identity-file PRIVATE_KEY --confirm")
 		fmt.Fprintln(fs.Output(), "Drive onboarding: drive-setup NEW_DIRECTORY --client-json FILE; drive-auth DIRECTORY --confirm; drive-status DIRECTORY [--online]")
 		fmt.Fprintln(fs.Output(), "Unused-pack cleanup: prune-plan; prune-save NEW_PLAN.json; prune-apply PLAN.json --repository-wide --preserve VERIFIED_FULL_ID --confirm")
 		fmt.Fprintln(fs.Output(), "Reviewed retention: retention-save PROJECT NEW_PLAN.json [policy flags]; retention-apply PROJECT PLAN.json --preserve VERIFIED_KEPT_FULL_ID --confirm (removes snapshot records; no prune)")
@@ -73,6 +74,14 @@ func run(ctx context.Context, args []string) error {
 	if a[0] == "setup" {
 		return runSetup(a[1:])
 	}
+	if a[0] == "kit-open" {
+		if *timeout <= 0 {
+			return errors.New("timeout must be positive")
+		}
+		ctx, cancel := context.WithTimeout(ctx, *timeout)
+		defer cancel()
+		return runKitOpen(ctx, a)
+	}
 	if a[0] == "drive-setup" || a[0] == "drive-auth" || a[0] == "drive-status" {
 		if *timeout <= 0 {
 			return errors.New("timeout must be positive")
@@ -87,6 +96,11 @@ func run(ctx context.Context, args []string) error {
 	cfg, err := config.Load(*file)
 	if err != nil {
 		return err
+	}
+	if a[0] == "kit-export" {
+		ctx, cancel := context.WithTimeout(ctx, *timeout)
+		defer cancel()
+		return runKitExport(ctx, cfg, a)
 	}
 	e, err := engine.New(cfg)
 	if err != nil {

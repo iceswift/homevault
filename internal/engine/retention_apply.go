@@ -97,6 +97,9 @@ func LoadRetentionReview(file string) (RetentionReview, error) {
 // ApplyRetention forgets only reviewed explicit IDs. It never invokes prune.
 // Other tools must not mutate this repository concurrently; our lock is local.
 func (e *Engine) ApplyRetention(ctx context.Context, project string, review RetentionReview, preserve string) (result RetentionResult, err error) {
+	if e.cfg.RecoveryOnly {
+		return result, errors.New("recovery-only configuration refuses snapshot removal")
+	}
 	if _, err = e.cfg.Project(project); err != nil {
 		return result, err
 	}

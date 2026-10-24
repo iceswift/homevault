@@ -26,7 +26,8 @@ jobs:
           go vet ./...
           python3 scripts/verify-systemd.py
           python3 scripts/fetch-test-restic.py "$RUNNER_TEMP/tools"
-          HOMEVAULT_TEST_RESTIC="$RUNNER_TEMP/tools/restic" go test ./integration -count=1
+          python3 scripts/fetch-test-age.py "$RUNNER_TEMP/age-tools"
+          HOMEVAULT_TEST_RESTIC="$RUNNER_TEMP/tools/restic" HOMEVAULT_TEST_AGE="$RUNNER_TEMP/age-tools/age" go test ./internal/recovery ./integration -count=1
           python3 scripts/package-release.py --version "$GITHUB_REF_NAME" --output "$RUNNER_TEMP/dist"
       - name: Create reviewable draft only
         env:

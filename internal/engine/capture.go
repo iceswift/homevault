@@ -164,6 +164,9 @@ func (p CapturePlan) verifySource(project config.Project, identity captureIdenti
 }
 
 func (e *Engine) RunCapturedJob(ctx context.Context, project string, plan CapturePlan) error {
+	if e.cfg.RecoveryOnly {
+		return errors.New("recovery-only configuration refuses capture")
+	}
 	if runtime.GOOS != "linux" {
 		return errors.New("fresh capture requires Linux")
 	}

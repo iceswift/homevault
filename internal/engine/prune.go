@@ -232,6 +232,9 @@ func validPruneReviewTime(t time.Time) bool {
 // ApplyPrune never forgets snapshots. The caller acknowledges repository-wide scope.
 // Do not concurrently access this repository with another client/state directory.
 func (e *Engine) ApplyPrune(ctx context.Context, review PruneReview, preserve string) (result PruneResult, err error) {
+	if e.cfg.RecoveryOnly {
+		return result, errors.New("recovery-only configuration refuses prune")
+	}
 	if review.Version != 1 || review.RepositoryID != e.repositoryID() || review.Scope != "repository" || review.Mode != pruneMode || review.ResticVersion != testedPruneVersion || !validPruneReviewTime(review.Created) {
 		return result, errors.New("prune review identity/mode/version invalid or expired; create a new review")
 	}

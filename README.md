@@ -13,6 +13,8 @@ A small, open-source Go CLI/TUI that orchestrates encrypted Restic backups. No p
 
 New users: follow [onboarding and new-machine recovery](docs/ONBOARDING.md). `setup` generates a private starter config/checklist using an existing repository key; it never initializes, uploads or enables services. Linux preview packages and draft-release workflow are described in [releasing](docs/RELEASING.md).
 
+Experimental [portable recovery kits](docs/RECOVERY-KIT.md) encrypt selected original credentials with age for independent custody. Opening creates a new recovery-only config; it does not initialize, back up or delete repository data. A generated-data fresh-container disaster drill passed, without production keys or an actual server loss.
+
 Experimental Linux database preparation now supports SQLite online backup and PostgreSQL custom dumps before Restic runs. See [database configuration and limits](docs/DATABASE-BACKUPS.md). Database exports and attached files are not a shared atomic application snapshot; coordinate application writes externally when needed. Never point file paths directly at running PostgreSQL storage or copy live SQLite files as ordinary files.
 
 Experimental [backup jobs and alerts](docs/SCHEDULING-ALERTS.md) provide persisted backup/check status, the latest 32 attempts, freshness checks, optional minimal Discord notifications and reviewable systemd templates. They are not installed/enabled automatically. Plain backup and rehearsal remain distinct from a scheduled job's status.

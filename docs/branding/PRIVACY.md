@@ -16,6 +16,8 @@ OAuth client credentials and access/refresh tokens are stored in a private rclon
 
 The optional new desktop OAuth wizard performs consent directly with Google using PKCE and a temporary loopback callback. It saves credentials locally, does not request an identity/profile/Gmail scope, and does not read the account's email for its status display. Account selection occurs in the browser. Its optional online status check performs a shallow directory listing through rclone but does not display or retain directory names. It does not change existing authorization automatically or send tokens to the public information website.
 
+Optional recovery-kit export encrypts operator-selected original recovery credentials and a dedicated Drive configuration into an age-encrypted local file for independent custody. It does not automatically upload that file or export unrelated accounts. Opening a kit writes plaintext credentials only into a new private recovery directory. The operator chooses storage/custody and must protect the decryption identity separately. No production recovery kit has been created by the new generated-data tests described in the project documentation.
+
 ## Sharing and other uses
 
 This installation does not send backup contents or OAuth tokens to a HomeVault-operated central service. Its Google API access is for the backup/restore functions described here, not advertising, data resale or training AI models. HomeVault currently implements no advertising or analytics collection. Google processes requests under its own applicable terms and privacy practices. If these pages are hosted publicly, the hosting provider may process ordinary web access logs separately from the backup application.
