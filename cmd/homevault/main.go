@@ -34,6 +34,7 @@ func run(ctx context.Context, args []string) error {
 	file := fs.String("config", "homevault.json", "configuration file")
 	timeout := fs.Duration("timeout", 2*time.Hour, "operation timeout")
 	fs.Usage = func() {
+		fmt.Fprintln(fs.Output(), "Project setup: setup NEW_DIRECTORY --project NAME --source ABS_DIRECTORY --repository REPOSITORY --password-file EXISTING_KEY [--sqlite ABS_DB] [--capture-required]")
 		fmt.Fprintln(fs.Output(), "Retention preview: retention-plan PROJECT [--keep-daily 7] [--keep-weekly 4] [--keep-monthly 12] (no deletion)")
 		fmt.Fprintln(fs.Output(), "Usage: homevault [--config FILE] [--timeout 2h] COMMAND\nCommands: version, demo-setup NEW_DIRECTORY, doctor, init, backup PROJECT, job-backup PROJECT, capture-check PROJECT PLAN.json, capture-backup PROJECT PLAN.json --confirm, status PROJECT, monitor PROJECT --max-age 36h, notify-test PROJECT, snapshots PROJECT, check, restore PROJECT FULL_SNAPSHOT_ID NEW_TARGET --confirm, rehearse PROJECT FULL_SNAPSHOT_ID NEW_TARGET PLAN.json --confirm, resume-paused GUARD_FILE [--force], tui")
 	}
@@ -65,6 +66,9 @@ func run(ctx context.Context, args []string) error {
 			return errors.New("usage: demo-setup NEW_DIRECTORY")
 		}
 		return setupDemo(a[1])
+	}
+	if a[0] == "setup" {
+		return runSetup(a[1:])
 	}
 	if *timeout <= 0 {
 		return errors.New("timeout must be positive")
@@ -234,6 +238,8 @@ type model struct {
 	quitting bool
 	cancel   context.CancelFunc
 	workers  *operationGroup
+	height   int
+	offset   int
 }
 
 type operationGroup struct{ sync.WaitGroup }
@@ -250,8 +256,13 @@ func (g *operationGroup) start(fn func() resultMsg) tea.Cmd {
 func (m model) Init() tea.Cmd { return nil }
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch v := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.height = v.Height
+		m.offset = 0
+		return m, nil
 	case resultMsg:
 		m.busy = false
+		m.offset = 0
 		m.status = v.text
 		if v.err != nil {
 			m.status = "ERROR: " + v.err.Error()
@@ -262,6 +273,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case tea.KeyMsg:
 		switch v.String() {
+		case "pgdown":
+			m.offset += m.pageSize()
+			m.clampOffset()
+			return m, nil
+		case "pgup":
+			m.offset -= m.pageSize()
+			m.clampOffset()
+			return m, nil
+		case "g":
+			if !m.busy {
+				m.status = recoveryHelp()
+				m.offset = 0
+			}
+			return m, nil
 		case "q", "ctrl+c":
 			if m.busy {
 				m.quitting = true
@@ -280,7 +305,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.selected+1 < len(m.cfg.Projects) {
 				m.selected++
 			}
-		case "b", "s", "c":
+		case "b", "s", "c", "h", "p":
 			if m.busy || len(m.cfg.Projects) == 0 {
 				return m, nil
 			}
@@ -290,8 +315,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, m.workers.start(func() resultMsg {
 				switch v.String() {
 				case "b":
-					err := m.e.Backup(m.ctx, name)
-					return resultMsg{"Backup completed: " + name, err}
+					err := m.e.RunBackupJob(m.ctx, name)
+					return resultMsg{"Backup and metadata check completed: " + name + "\nApplication recovery is a separate rehearsal.", err}
+				case "h":
+					state, err := m.e.JobStatus(name)
+					return resultMsg{formatJobHistory(state), err}
+				case "p":
+					plan, err := m.e.PlanRetention(m.ctx, name, engine.RetentionPolicy{Daily: 7, Weekly: 4, Monthly: 12})
+					return resultMsg{formatRetention(plan), err}
 				case "c":
 					err := m.e.Check(m.ctx)
 					return resultMsg{"Repository check completed", err}
@@ -321,11 +352,18 @@ func (m model) View() string {
 		}
 		fmt.Fprintf(&b, "%s%s\n", cursor, p.Name)
 	}
-	b.WriteString("\n↑/↓ select · b backup · s snapshots · c check · q quit\n")
+	b.WriteString("\n↑/↓ select · b backup+check · h job history · s snapshots · c check\n")
+	b.WriteString("p retention preview · g recovery guide · PgUp/PgDn scroll · q quit\n")
 	if m.busy {
 		b.WriteString("Operation in progress\n")
 	}
-	b.WriteString("\n" + m.status + "\n")
+	lines := strings.Split(m.status, "\n")
+	start := min(max(m.offset, 0), max(len(lines)-m.pageSize(), 0))
+	end := min(start+m.pageSize(), len(lines))
+	b.WriteString("\n" + strings.Join(lines[start:end], "\n") + "\n")
+	if len(lines) > m.pageSize() {
+		fmt.Fprintf(&b, "Lines %d–%d of %d · PgUp/PgDn\n", start+1, end, len(lines))
+	}
 	b.WriteString("\nRestore uses the explicit CLI command. Scheduled backups run via systemd.\n")
 	return b.String()
 }

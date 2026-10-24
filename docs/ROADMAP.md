@@ -10,7 +10,7 @@ CLI/TUI, file backups through Restic, local/cloud snapshots, guarded restore, pr
 
 1. Database-aware preparation: experimental Linux PostgreSQL exports and SQLite online backup implemented, with private staging and failure before upload. See DATABASE-BACKUPS.md. Remaining: application-specific coordinated write pause, real-project onboarding and broader compatibility tests. No blind copy of live database storage.
 2. Application recovery rehearsal: isolated app recovery and optional ephemeral PostgreSQL import implemented, with health/database/media/login reports. Python fixture, actual DealDoor image with new demo data, and a synthetic PostgreSQL+app stack passed. Invalid SQL import fails closed with cleanup. See RECOVERY-REHEARSAL.md and POSTGRES-RECOVERY.md. Remaining: production-data recovery onboarding, broader app/version compatibility and crash recovery. Production stacks remain unchanged.
-3. Guided onboarding: project/source selection, storage/OAuth setup, recovery-key instructions, preflight checks and a clear first restore drill. Production installation remains manual.
+3. Guided onboarding: a guarded setup command now generates a private starter config and restore checklist using an existing key, with separate file/SQLite inputs and optional capture-required policy. See ONBOARDING.md. Interactive OAuth, PostgreSQL wizard and automatic production installation remain manual/future work.
 4. Durable job state: implemented bounded job history, distinct backup/check outcomes, last-success preservation, freshness monitoring and optional deduplicated Discord failure/overdue/recovery delivery. Restore/rehearsal proof remains separate. See SCHEDULING-ALERTS.md.
 5. Scheduled operations and retention: fresh SQLite capture, maintenance-window gate, guardian/rescue helpers and dedicated systemd templates implemented and fixture-tested. DealDoor live-source metadata preflight passed without stopping it. No services/timers enabled (owner chose preparation only). Live capture rehearsal, private webhook provisioning, source permissions and owner activation remain prerequisites. Retention/deletion remains unimplemented.
 
@@ -19,3 +19,11 @@ Public website must label these as planned until implemented and tested. Google 
 Retention update: a project-scoped, read-only `retention-plan` preview is implemented
 with calendar buckets and protected snapshots; see RETENTION.md. Deletion/pruning
 and automatic retention execution remain unimplemented.
+
+Usability/distribution update: TUI history, retention preview, recovery guide and
+paging are implemented. CI, Linux package/checksum generation and tag-triggered
+draft prerelease workflows are prepared; see RELEASING.md. No stable release or
+production activation is implied. Remaining deployment gates: portable off-server
+key custody, approved live capture/rehearsal, source permissions, private webhook
+verification, manual service test and explicit schedule activation. Deletion/apply,
+crash/reboot certification and broader platform/app compatibility remain future work.

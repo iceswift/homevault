@@ -1,6 +1,6 @@
 # Verification status
 
-HomeVault is an early file-backup MVP, not a production application-backup system. Ubuntu/Linux is the initial validated platform.
+HomeVault is an experimental backup/recovery orchestrator, not a certified production application-backup system. Ubuntu/Linux is the initial validated platform.
 
 ## Checks performed
 
@@ -17,7 +17,7 @@ The default `go test ./...` run skips real Restic integration unless HOMEVAULT_T
 
 ## Known limits
 
-Windows unit tests pass, but actual restore encountered ACL failures; Windows is not a validated backup/restore target. Experimental database preparation is Linux-only; SQLite WAL export, encrypted recovery after source loss, PostgreSQL 16 dump/restore and export-failure gating passed synthetic tests. See DATABASE-BACKUPS.md for boundaries, dependencies and application consistency limitations. Retention, alerts, durable history and automatic scheduler installation remain unimplemented. Review deploy templates and test restore independently before relying on them.
+Windows unit tests pass, but actual restore encountered ACL failures; Windows is not a validated backup/restore target. Experimental database preparation is Linux-only; SQLite WAL export, encrypted recovery after source loss, PostgreSQL 16 dump/restore and export-failure gating passed synthetic tests. See DATABASE-BACKUPS.md for boundaries, dependencies and application consistency limitations. Read-only retention preview, optional alerts and durable history are implemented; deletion/pruning and automatic scheduler installation remain unimplemented. Review deploy templates and test restore independently before relying on them.
 
 Personal deployment paths, account-specific evidence, credentials and generated data are intentionally excluded from the public repository.
 
@@ -31,3 +31,15 @@ Ubuntu synthetic tests passed durable job status/history, preserving last succes
 
 
 On Ubuntu, a synthetic PostgreSQL 16 + Node/pg application passed HomeVault preparation, encrypted Restic backup/restore, automatic import into a fresh ephemeral cluster, exact database canary, HTTP health/media, database-backed login/session and both-container cleanup. An invalid SQL archive failed import before application checks and cleaned up correctly. No Saan or production PostgreSQL data was used. See POSTGRES-RECOVERY.md; arbitrary Compose stacks and actual production-project onboarding remain unvalidated.
+
+## Onboarding, TUI and distribution preparation
+
+The guarded setup command is tested for existing-key reuse, refusal to overwrite,
+and validation before output creation. TUI tests cover paging/resize bounds,
+history presentation without repository fingerprints, and the recovery guide.
+Linux amd64/arm64 archives were cross-built and SHA256SUMS verified locally.
+The amd64 package passed an Ubuntu synthetic CLI smoke test: version, setup,
+doctor, encrypted job backup, status, retention preview and byte-identical restore.
+This did not stop any production app or access Drive/Discord. Arm64 runtime has
+not been tested. CI/draft-release workflows require their own hosted-run evidence;
+local packaging alone does not prove a GitHub workflow run or published release.
