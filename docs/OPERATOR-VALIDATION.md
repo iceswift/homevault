@@ -65,3 +65,24 @@ second backup disk in the source server. This direction is planned, not implemen
 
 Scheduling remains a separate explicit owner decision. No real Drive retention
 deletion or prune has been performed as part of these operator checks.
+
+## Incremental server-recovery coverage
+
+A subsequent read-only inventory found multiple applications with bind-mounted
+data and host-service dependencies. This is a baseline, not an exhaustive
+privileged audit. Curated deployment/static files were subsequently staged,
+uploaded to the existing encrypted repository and separately restored; all
+pre-upload manifest hashes matched. See RECOVERY-FILES.md for the staging helper.
+
+After explicit owner authorization, one application's existing scheduled
+PostgreSQL dump/uploads bundle and required deployment configuration/secrets were
+also uploaded encrypted. Completion marker, source checksums, archive member
+safety, dump readability and current image/config compatibility were checked;
+the separate cloud restore matched staged hashes. The recovery point is the
+original scheduled capture time, not upload time. No new application pause was
+required. This check did not import the restored database or run the restored app.
+
+Selected root-owned host/application configuration was prepared privately by the
+owner; its cloud transfer is a separate authorization step. Live JSON-state
+capture, image availability/export, complete host reconstruction and a full
+replacement-machine drill remain pending. No new cloud schedule was enabled.
