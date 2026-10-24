@@ -14,13 +14,16 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version-file: go.mod
           cache: true
+          cache-dependency-path: |
+            go.sum
+            .github/workflows/ci.yml
       - name: Formatting, unit tests and static analysis
         run: |
           test -z "$(gofmt -l cmd internal integration)"
@@ -33,7 +36,7 @@ jobs:
           HOMEVAULT_TEST_RESTIC="$RUNNER_TEMP/homevault-tools/restic" go test ./integration -count=1 -v
       - name: Build Linux packages and checksums
         run: python3 scripts/package-release.py --version "dev-${GITHUB_SHA:0:12}" --output "$RUNNER_TEMP/homevault-dist"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: homevault-linux-preview
           path: ${{ runner.temp }}/homevault-dist/*
