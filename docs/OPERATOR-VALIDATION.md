@@ -94,7 +94,34 @@ environment values. The app returned healthy before upload after approximately
 hashes; unrelated application health checks passed. This was not an application
 restore rehearsal.
 
-Image availability/export, a unified recovery catalog/bootstrap, completion of
-privileged inventory gaps, complete host reconstruction and a full replacement-
-machine drill remain pending. These selected backups do not cover every host
-file or make a bootable image. No new cloud schedule was enabled.
+Completion of privileged inventory gaps, complete host reconstruction and a full
+replacement-machine drill remain pending. These selected backups do not cover
+every host file or make a bootable image. No new cloud schedule was enabled.
+
+## Recovery bundle preparation
+
+One operator exported seven pinned runtime image references used by eight running
+containers. The OCI archive's top-level image indexes and 110 included blob hashes
+were verified; the archive and reviewed recovery tools were backed up encrypted
+and separately restored with matching pre-upload file hashes. No image was loaded
+into Docker during this check. Container identities/start times were unchanged
+through the successful validation/transfer run; subsequent health checks passed.
+
+A catalog maps six selections to exact project tags, full snapshot IDs and nested
+restore paths. A bootstrap archive includes Linux amd64 tools, the catalog,
+metadata-only host inventory and the manual REBUILD.md runbook. It does not install
+Ubuntu/Docker, promote secrets, start applications or configure ingress.
+
+The bootstrap, final catalog and a newly encrypted credential kit were copied to
+the operator's independent Windows PC. Checksums and owner/SYSTEM-only ACLs passed.
+The kit opened there, its original repository key matched the independently
+protected copy, and the catalog generated six recovery-only configurations.
+Temporary decrypted verification files were removed. The private age identity
+was not sent to the source server. Kit and identity remain on the same independent
+PC in separate private folders; an additional independent custody copy is not
+established by this test.
+
+This proves selected archive bytes and off-server bootstrap custody, not that the
+images load/run on a replacement machine. No new PostgreSQL application restore,
+full-server drill, physical disk-loss recovery or production cutover was performed.
+See REBUILD.md for the next isolated recovery gates.

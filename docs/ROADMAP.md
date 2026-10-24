@@ -38,8 +38,11 @@ draft prerelease workflows are prepared; see RELEASING.md. No stable release or
 production activation is implied. One operator has completed key custody, approved
 live capture/rehearsal, private webhook tests and manual preflight/monitor service
 tests. Capture-service execution and explicit schedule activation remain pending.
-Cloud-based whole-server rebuild is the next planned scope: inventory all apps and
-host settings, protect deployment definitions/secrets/images, capture each database
-consistently and prove recovery onto a replacement environment. It is not implemented
-and does not require a second disk in the source server. Data repacking, crash/reboot
+Cloud-based replacement-machine preparation has advanced: selected application
+data, deployment/host configuration and pinned images were backed up encrypted
+with restored hash checks. An operator-specific catalog/bootstrap and independently
+opened credential kit are prepared; see OPERATOR-VALIDATION.md and REBUILD.md.
+This is not complete host recovery. Privileged inventory gaps, actual image load,
+isolated application/full replacement-machine drills and reviewed cutover remain.
+No second disk in the source server is required. Data repacking, crash/reboot
 certification and broader platform/app compatibility remain future work.

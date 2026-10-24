@@ -15,6 +15,11 @@ New users: follow [onboarding and new-machine recovery](docs/ONBOARDING.md). `se
 
 Experimental [portable recovery kits](docs/RECOVERY-KIT.md) encrypt selected original credentials with age for independent custody. Opening creates a new recovery-only config; it does not initialize, back up or delete repository data. A generated-data fresh-container disaster drill passed, without production keys or an actual server loss.
 
+The experimental [replacement-machine runbook](docs/REBUILD.md) describes reviewed
+snapshot selection, OCI image archive verification and isolated reconstruction.
+The catalog helper prepares recovery-only configs; it does not install or start
+services. Preparing a bundle is separate from proving a replacement-machine restore.
+
 Experimental Linux database preparation now supports SQLite online backup and PostgreSQL custom dumps before Restic runs. See [database configuration and limits](docs/DATABASE-BACKUPS.md). Database exports and attached files are not a shared atomic application snapshot; coordinate application writes externally when needed. Never point file paths directly at running PostgreSQL storage or copy live SQLite files as ordinary files.
 
 Experimental [backup jobs and alerts](docs/SCHEDULING-ALERTS.md) provide persisted backup/check status, the latest 32 attempts, freshness checks, optional minimal Discord notifications and reviewable systemd templates. They are not installed/enabled automatically. Plain backup and rehearsal remain distinct from a scheduled job's status.
