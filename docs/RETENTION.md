@@ -83,8 +83,9 @@ rollback or blindly retry. The audit is latest-only, not an immutable history.
 ## Space reclamation
 
 Apply never calls `prune` or `forget --prune`. Snapshot removal alone does not
-remove unreferenced data packs or guarantee reclaimed Drive space. Reviewed
-pruning, Drive trash handling and automatic retention are still unimplemented.
+remove unreferenced data packs or guarantee reclaimed Drive space. Separate
+[reviewed unused-pack prune](PRUNE.md) is implemented; Drive trash handling and
+automatic retention are still unimplemented.
 See [Restic's removal documentation](https://restic.readthedocs.io/en/stable/060_forget.html).
 
 Unit tests cover project-filtered listing with no mutation commands, occupied

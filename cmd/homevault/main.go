@@ -34,6 +34,7 @@ func run(ctx context.Context, args []string) error {
 	file := fs.String("config", "homevault.json", "configuration file")
 	timeout := fs.Duration("timeout", 2*time.Hour, "operation timeout")
 	fs.Usage = func() {
+		fmt.Fprintln(fs.Output(), "Unused-pack cleanup: prune-plan; prune-save NEW_PLAN.json; prune-apply PLAN.json --repository-wide --preserve VERIFIED_FULL_ID --confirm")
 		fmt.Fprintln(fs.Output(), "Reviewed retention: retention-save PROJECT NEW_PLAN.json [policy flags]; retention-apply PROJECT PLAN.json --preserve VERIFIED_KEPT_FULL_ID --confirm (removes snapshot records; no prune)")
 		fmt.Fprintln(fs.Output(), "Project setup: setup NEW_DIRECTORY --project NAME --source ABS_DIRECTORY --repository REPOSITORY --password-file EXISTING_KEY [--sqlite ABS_DB] [--capture-required]")
 		fmt.Fprintln(fs.Output(), "Retention preview: retention-plan PROJECT [--keep-daily 7] [--keep-weekly 4] [--keep-monthly 12] (no deletion)")
@@ -85,6 +86,46 @@ func run(ctx context.Context, args []string) error {
 	ctx, cancel := context.WithTimeout(ctx, *timeout)
 	defer cancel()
 	switch a[0] {
+	case "prune-plan", "prune-save":
+		if a[0] == "prune-plan" && len(a) != 1 || a[0] == "prune-save" && len(a) != 2 {
+			return errors.New("usage: prune-plan | prune-save NEW_ABSOLUTE_PLAN.json")
+		}
+		if a[0] == "prune-save" {
+			if err := config.ValidateDestination(a[1]); err != nil {
+				return err
+			}
+		}
+		review, err := e.ReviewPrune(ctx)
+		if err != nil {
+			return err
+		}
+		if a[0] == "prune-plan" {
+			return json.NewEncoder(os.Stdout).Encode(review)
+		}
+		data, err := json.MarshalIndent(review, "", "  ")
+		if err != nil {
+			return err
+		}
+		if err := writeNewPrivate(a[1], data); err != nil {
+			return err
+		}
+		fmt.Println("Private repository-wide unused-pack prune review saved; dry-run only. Review approximate sizes and independently verify a retained snapshot before apply.")
+		return nil
+	case "prune-apply":
+		if len(a) != 6 || a[2] != "--repository-wide" || a[3] != "--preserve" || a[5] != "--confirm" {
+			return errors.New("usage: prune-apply PLAN.json --repository-wide --preserve VERIFIED_FULL_ID --confirm")
+		}
+		review, err := engine.LoadPruneReview(a[1])
+		if err != nil {
+			return err
+		}
+		result, err := e.ApplyPrune(ctx, review, a[4])
+		if result.Status != "" {
+			if encodeErr := json.NewEncoder(os.Stdout).Encode(result); encodeErr != nil {
+				return encodeErr
+			}
+		}
+		return err
 	case "doctor":
 		fmt.Println("PASS configuration and required executables; repository access, OAuth and restore are not tested")
 	case "init":

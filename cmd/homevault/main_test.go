@@ -40,6 +40,38 @@ func TestRetentionApplyRequiresExplicitConfirmation(t *testing.T) {
 	}
 }
 
+func TestPruneApplyRequiresScopeAndConfirmation(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "lab")
+	if err := setupDemo(root); err != nil {
+		t.Fatal(err)
+	}
+	file := filepath.Join(root, "homevault.json")
+	cfg, err := config.Load(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg.ResticBinary, err = os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, _ := json.Marshal(cfg)
+	if err := os.WriteFile(file, data, 0600); err != nil {
+		t.Fatal(err)
+	}
+	for _, args := range [][]string{
+		{"prune-apply", "missing.json", "--repository-wide", "--preserve", strings.Repeat("a", 64)},
+		{"prune-apply", "missing.json", "--preserve", strings.Repeat("a", 64), "--confirm"},
+	} {
+		err := run(context.Background(), append([]string{"--config", file}, args...))
+		if err == nil || !strings.Contains(err.Error(), "usage: prune-apply") {
+			t.Fatal("missing prune acknowledgment not refused", err)
+		}
+	}
+	if _, err := os.Stat(cfg.Repository); !os.IsNotExist(err) {
+		t.Fatal("repository touched without prune acknowledgments")
+	}
+}
+
 func TestDemoSetupRefusesExistingDirectory(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "lab")
 	if err := setupDemo(root); err != nil {

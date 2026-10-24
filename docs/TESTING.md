@@ -17,14 +17,22 @@ The default `go test ./...` run skips real Restic integration unless HOMEVAULT_T
 
 ## Known limits
 
+Reviewed prune tests use Restic 0.19.1, full-repository snapshot/pack/index binding,
+fixed no-repack flags, private audit, dry-run summary parsing and pre/post metadata
+checks. Unit cases refuse stale/changed/unsupported/repacking plans and cover
+cancellation/post-check failure without false verification. On Ubuntu, generated
+local data-pack bytes decreased after apply and both retained projects restored
+byte-identically. Dry-run itself did not alter data packs. See PRUNE.md. No real
+Drive/production prune or quota-reclamation claim is made.
+
 Reviewed retention tests cover explicit confirmation, exact forget IDs, protected
 hosts/shared project tags, stale/edited/mismatched reviews, preflight failure,
 late metadata changes, failure audit and unchanged backup freshness. On Ubuntu,
 the real Restic local fixture removed only a generated candidate, preserved an
 unrelated project and retained data packs, then restored the kept version exactly.
-No production/cloud snapshots were removed. Pruning is not implemented.
+No production/cloud snapshots were removed. Reviewed unused-pack pruning is tested separately above.
 
-Windows unit tests pass, but actual restore encountered ACL failures; Windows is not a validated backup/restore target. Experimental database preparation is Linux-only; SQLite WAL export, encrypted recovery after source loss, PostgreSQL 16 dump/restore and export-failure gating passed synthetic tests. See DATABASE-BACKUPS.md for boundaries, dependencies and application consistency limitations. Retention preview/reviewed snapshot removal, optional alerts and durable history are implemented; pruning and automatic scheduler installation remain unimplemented. Review deploy templates and test restore independently before relying on them.
+Windows unit tests pass, but actual restore encountered ACL failures; Windows is not a validated backup/restore target. Experimental database preparation is Linux-only; SQLite WAL export, encrypted recovery after source loss, PostgreSQL 16 dump/restore and export-failure gating passed synthetic tests. See DATABASE-BACKUPS.md for boundaries, dependencies and application consistency limitations. Retention preview/reviewed snapshot removal, reviewed unused-pack pruning, optional alerts and durable history are implemented; automatic scheduler installation and data repacking remain unimplemented. Review deploy templates and test restore independently before relying on them.
 
 Personal deployment paths, account-specific evidence, credentials and generated data are intentionally excluded from the public repository.
 
