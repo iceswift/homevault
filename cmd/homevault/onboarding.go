@@ -99,7 +99,7 @@ func setupProject(root string, cfg config.Config) error {
 func writeNewPrivate(path string, data []byte) error {
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
 	if err != nil {
-		return errors.New("cannot create private onboarding file")
+		return errors.New("cannot create new private output file")
 	}
 	_, writeErr := f.Write(data)
 	syncErr := f.Sync()

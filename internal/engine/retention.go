@@ -73,9 +73,25 @@ func planRetention(project string, snapshots []Snapshot, policy RetentionPolicy,
 	})
 	days, weeks, months := map[string]bool{}, map[string]bool{}, map[string]bool{}
 	latestPast := false
+	hosts := map[string]bool{}
+	pastHosts := map[string]bool{}
 	for i, s := range ordered {
 		t := s.Time.UTC()
 		entry := RetentionEntry{ID: s.ID, Time: t}
+		latestHost := !hosts[s.Hostname]
+		if latestHost {
+			hosts[s.Hostname] = true
+			entry.Reasons = append(entry.Reasons, "latest-host")
+		}
+		projectTags := map[string]bool{}
+		for _, tag := range s.Tags {
+			if strings.HasPrefix(tag, "homevault:") && tag != "homevault:keep" {
+				projectTags[tag] = true
+			}
+		}
+		if len(projectTags) > 1 {
+			entry.Reasons = append(entry.Reasons, "shared-project")
+		}
 		if i == 0 {
 			entry.Reasons = append(entry.Reasons, "latest")
 		}
@@ -94,6 +110,12 @@ func planRetention(project string, snapshots []Snapshot, policy RetentionPolicy,
 				latestPast = true
 				if i != 0 {
 					entry.Reasons = append(entry.Reasons, "latest-nonfuture")
+				}
+			}
+			if !pastHosts[s.Hostname] {
+				pastHosts[s.Hostname] = true
+				if !latestHost {
+					entry.Reasons = append(entry.Reasons, "latest-host-nonfuture")
 				}
 			}
 			year, week := t.ISOWeek()

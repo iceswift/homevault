@@ -2,14 +2,43 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"homevault/internal/config"
 )
+
+func TestRetentionApplyRequiresExplicitConfirmation(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "lab")
+	if err := setupDemo(root); err != nil {
+		t.Fatal(err)
+	}
+	file := filepath.Join(root, "homevault.json")
+	cfg, err := config.Load(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg.ResticBinary, err = os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, _ := json.Marshal(cfg)
+	if err := os.WriteFile(file, data, 0600); err != nil {
+		t.Fatal(err)
+	}
+	err = run(context.Background(), []string{"--config", file, "retention-apply", "synthetic", "missing-review.json", "--preserve", strings.Repeat("a", 64)})
+	if err == nil || !strings.Contains(err.Error(), "usage: retention-apply") {
+		t.Fatal("missing confirmation not rejected", err)
+	}
+	if _, err := os.Stat(cfg.Repository); !os.IsNotExist(err) {
+		t.Fatal("repository touched without confirmation")
+	}
+}
 
 func TestDemoSetupRefusesExistingDirectory(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "lab")

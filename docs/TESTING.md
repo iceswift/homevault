@@ -17,7 +17,14 @@ The default `go test ./...` run skips real Restic integration unless HOMEVAULT_T
 
 ## Known limits
 
-Windows unit tests pass, but actual restore encountered ACL failures; Windows is not a validated backup/restore target. Experimental database preparation is Linux-only; SQLite WAL export, encrypted recovery after source loss, PostgreSQL 16 dump/restore and export-failure gating passed synthetic tests. See DATABASE-BACKUPS.md for boundaries, dependencies and application consistency limitations. Read-only retention preview, optional alerts and durable history are implemented; deletion/pruning and automatic scheduler installation remain unimplemented. Review deploy templates and test restore independently before relying on them.
+Reviewed retention tests cover explicit confirmation, exact forget IDs, protected
+hosts/shared project tags, stale/edited/mismatched reviews, preflight failure,
+late metadata changes, failure audit and unchanged backup freshness. On Ubuntu,
+the real Restic local fixture removed only a generated candidate, preserved an
+unrelated project and retained data packs, then restored the kept version exactly.
+No production/cloud snapshots were removed. Pruning is not implemented.
+
+Windows unit tests pass, but actual restore encountered ACL failures; Windows is not a validated backup/restore target. Experimental database preparation is Linux-only; SQLite WAL export, encrypted recovery after source loss, PostgreSQL 16 dump/restore and export-failure gating passed synthetic tests. See DATABASE-BACKUPS.md for boundaries, dependencies and application consistency limitations. Retention preview/reviewed snapshot removal, optional alerts and durable history are implemented; pruning and automatic scheduler installation remain unimplemented. Review deploy templates and test restore independently before relying on them.
 
 Personal deployment paths, account-specific evidence, credentials and generated data are intentionally excluded from the public repository.
 

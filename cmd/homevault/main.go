@@ -34,6 +34,7 @@ func run(ctx context.Context, args []string) error {
 	file := fs.String("config", "homevault.json", "configuration file")
 	timeout := fs.Duration("timeout", 2*time.Hour, "operation timeout")
 	fs.Usage = func() {
+		fmt.Fprintln(fs.Output(), "Reviewed retention: retention-save PROJECT NEW_PLAN.json [policy flags]; retention-apply PROJECT PLAN.json --preserve VERIFIED_KEPT_FULL_ID --confirm (removes snapshot records; no prune)")
 		fmt.Fprintln(fs.Output(), "Project setup: setup NEW_DIRECTORY --project NAME --source ABS_DIRECTORY --repository REPOSITORY --password-file EXISTING_KEY [--sqlite ABS_DB] [--capture-required]")
 		fmt.Fprintln(fs.Output(), "Retention preview: retention-plan PROJECT [--keep-daily 7] [--keep-weekly 4] [--keep-monthly 12] (no deletion)")
 		fmt.Fprintln(fs.Output(), "Usage: homevault [--config FILE] [--timeout 2h] COMMAND\nCommands: version, demo-setup NEW_DIRECTORY, doctor, init, backup PROJECT, job-backup PROJECT, capture-check PROJECT PLAN.json, capture-backup PROJECT PLAN.json --confirm, status PROJECT, monitor PROJECT --max-age 36h, notify-test PROJECT, snapshots PROJECT, check, restore PROJECT FULL_SNAPSHOT_ID NEW_TARGET --confirm, rehearse PROJECT FULL_SNAPSHOT_ID NEW_TARGET PLAN.json --confirm, resume-paused GUARD_FILE [--force], tui")
@@ -170,25 +171,66 @@ func run(ctx context.Context, args []string) error {
 			return err
 		}
 		return json.NewEncoder(os.Stdout).Encode(snapshots)
-	case "retention-plan":
+	case "retention-plan", "retention-save":
 		if len(a) < 2 {
 			return errors.New("usage: retention-plan PROJECT [--keep-daily 7] [--keep-weekly 4] [--keep-monthly 12]")
+		}
+		flagStart := 2
+		if a[0] == "retention-save" {
+			if len(a) < 3 {
+				return errors.New("usage: retention-save PROJECT NEW_ABSOLUTE_PLAN.json [--keep-daily 7] [--keep-weekly 4] [--keep-monthly 12]")
+			}
+			if err := config.ValidateDestination(a[2]); err != nil {
+				return err
+			}
+			flagStart = 3
 		}
 		flags := flag.NewFlagSet("retention-plan", flag.ContinueOnError)
 		daily := flags.Int("keep-daily", 7, "occupied UTC days to keep")
 		weekly := flags.Int("keep-weekly", 4, "occupied ISO weeks to keep")
 		monthly := flags.Int("keep-monthly", 12, "occupied UTC months to keep")
-		if err := flags.Parse(a[2:]); err != nil {
+		if err := flags.Parse(a[flagStart:]); err != nil {
 			return err
 		}
 		if flags.NArg() != 0 {
 			return errors.New("unexpected retention-plan argument")
 		}
-		plan, err := e.PlanRetention(ctx, a[1], engine.RetentionPolicy{Daily: *daily, Weekly: *weekly, Monthly: *monthly})
+		policy := engine.RetentionPolicy{Daily: *daily, Weekly: *weekly, Monthly: *monthly}
+		if a[0] == "retention-save" {
+			review, err := e.ReviewRetention(ctx, a[1], policy)
+			if err != nil {
+				return err
+			}
+			data, err := json.MarshalIndent(review, "", "  ")
+			if err != nil {
+				return err
+			}
+			if err := writeNewPrivate(a[2], data); err != nil {
+				return err
+			}
+			fmt.Println("Private retention review saved; no snapshots forgotten. Review keep/candidates and preserve a verified kept snapshot before apply.")
+			return nil
+		}
+		plan, err := e.PlanRetention(ctx, a[1], policy)
 		if err != nil {
 			return err
 		}
 		return json.NewEncoder(os.Stdout).Encode(plan)
+	case "retention-apply":
+		if len(a) != 6 || a[3] != "--preserve" || a[5] != "--confirm" {
+			return errors.New("usage: retention-apply PROJECT PLAN.json --preserve VERIFIED_KEPT_FULL_ID --confirm")
+		}
+		review, err := engine.LoadRetentionReview(a[2])
+		if err != nil {
+			return err
+		}
+		result, err := e.ApplyRetention(ctx, a[1], review, a[4])
+		if result.Project != "" {
+			if encodeErr := json.NewEncoder(os.Stdout).Encode(result); encodeErr != nil {
+				return encodeErr
+			}
+		}
+		return err
 	case "check":
 		return e.Check(ctx)
 	case "rehearse":

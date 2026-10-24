@@ -17,7 +17,7 @@ Experimental Linux database preparation now supports SQLite online backup and Po
 
 Experimental [backup jobs and alerts](docs/SCHEDULING-ALERTS.md) provide persisted backup/check status, the latest 32 attempts, freshness checks, optional minimal Discord notifications and reviewable systemd templates. They are not installed/enabled automatically. Plain backup and rehearsal remain distinct from a scheduled job's status.
 
-[Retention preview](docs/RETENTION.md) can show daily/weekly/monthly keep reasons and deletion candidates without deleting anything. Actual deletion/pruning, OAuth wizard and automatic scheduler installation are **not implemented** yet. A real application still needs a reviewed live-capture plan; do not schedule repeated backups of a frozen one-time copy.
+[Retention](docs/RETENTION.md) shows daily/weekly/monthly keep reasons and candidates without deleting anything. A separate experimental manual apply command requires a saved matching review, a preserved kept ID and explicit confirmation; it removes snapshot records only. Pruning, OAuth wizard and automatic scheduler installation are **not implemented** yet. A real application still needs a reviewed live-capture plan; do not schedule repeated backups of a frozen one-time copy.
 
 The experimental Linux [fresh SQLite capture adapter](docs/FRESH-CAPTURE.md) supports a pinned single-container deployment, maintenance-window gating, DB+WAL/media capture under the job lock, independent resume attempts and a config-free recovery helper. A live plan, exclusive-writer review, private webhook and explicit service activation are still required; no production timer is enabled automatically.
 
