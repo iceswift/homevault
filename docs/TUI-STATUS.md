@@ -11,7 +11,7 @@ reviewed coordinator plan:
 
 ```sh
 ./bin/homevault tui-status --plan /absolute/reviewed-workflows.json
-./bin/homevault tui-status --plan /absolute/reviewed-workflows.json --timezone Asia/Bangkok
+./bin/homevault tui-status --plan /absolute/reviewed-workflows.json --context production --timezone Asia/Bangkok
 ./bin/homevault tui-status --plan /absolute/reviewed-workflows.json --render --width 120 --height 32 --ascii
 ```
 
@@ -49,7 +49,29 @@ Backup, restore, checks, deletion, scheduling and credential actions are unavail
 in this mode. Their keys explain the read-only boundary. No file/lock creation,
 state update, notification, service restart, app pause or timer activation occurs.
 
-## What the displayed states mean
+## Separate workflow evidence
+
+The Overview and Projects screens show every workflow from the selected plan in
+one view. Backup/check, source freshness, application recovery and the plan gate
+are separate fields. Disabled gates do not erase earlier successful backup records.
+No coordinator verification point means unknown source freshness, even when a
+validated legacy backup/check record exists.
+
+Source freshness describes the recorded capture time against that workflow's age
+limit **at the last local read**. It is independent of the gate and latest attempt:
+a recorded upload may have passed while its source capture is stale. The latest
+backup/check attempt can be passed, failed, running, cancelled (legacy), skipped
+(coordinator), missing from this metadata set or unknown. Last successful upload
+and its timestamp are shown separately in details. Recovery always says
+`Not inspected`; rehearsal receipts are not read by this view.
+
+Use `--context production` for an explicitly selected real-data plan or `--context
+lab` for a test plan. The header says `(operator label)`; the default is `CONTEXT
+UNKNOWN`. No plan is selected based on the label and it does not grant permissions.
+All action keys remain unavailable. There is no Jobs capability, readiness engine,
+credential-content lookup or tool discovery in this view.
+
+## Coordinator assessment (full details)
 
 | State | Interpretation |
 | --- | --- |

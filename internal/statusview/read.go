@@ -292,6 +292,7 @@ func kindName(kind string) string {
 }
 func unknown(row statusdata.Project, reason string) statusdata.Project {
 	row.State = "unknown"
+	row.BackupCheck, row.SourceFreshness = "unknown", "unknown"
 	row.Attempt = "Unknown - local record not trusted"
 	row.Captured = time.Time{}
 	row.Uploaded = time.Time{}
@@ -378,7 +379,7 @@ func readSnapshot(planPath string, at time.Time, document func(string) (map[stri
 		}
 		names[name] = true
 		projects[project] = true
-		row := statusdata.Project{ID: name, Name: name, ProjectName: project, Kind: kindName(kind), State: "unverified", Attempt: "No local record", Recovery: "Unknown - not inspected", Schedule: "Unknown - systemd not inspected", Activation: "Disabled in plan", RecordScope: "No coordinator record", Note: "No record in this metadata set does not mean no cloud backup exists. Recovery, cloud reachability and timers were not inspected."}
+		row := statusdata.Project{ID: name, Name: name, ProjectName: project, Kind: kindName(kind), State: "unverified", BackupCheck: "no-record", SourceFreshness: "unknown", Attempt: "No local record", Recovery: "Unknown - not inspected", Schedule: "Unknown - systemd not inspected", Activation: "Disabled in plan", RecordScope: "No coordinator record", Note: "No record in this metadata set does not mean no cloud backup exists. Recovery, cloud reachability and timers were not inspected."}
 		if enabled {
 			row.Activation = "Enabled in plan; timer unknown"
 		} else {
@@ -401,6 +402,10 @@ func readSnapshot(planPath string, at time.Time, document func(string) (map[stri
 				break
 			}
 			row.Uploaded = upload
+			row.BackupCheck = map[string]string{"success": "passed", "failed": "failed", "running": "running"}[text(object(legacy, "latest"), "status")]
+			if text(object(legacy, "latest"), "phase") == "cancelled" {
+				row.BackupCheck = "cancelled"
+			}
 			row.Attempt = attempt + " (legacy job)"
 			row.RecordScope = "Legacy engine job only"
 			row.Note = "Earlier CLI job context only. Source capture age is unknown; it cannot establish workflow freshness. Other snapshots may exist."
@@ -537,6 +542,14 @@ func coordinator(row statusdata.Project, record map[string]any, enabled bool, ma
 	}
 	if status == "success" && uploaded.IsZero() {
 		return fail()
+	}
+	row.BackupCheck = map[string]string{"": "no-record", "success": "passed", "failed": "failed", "running": "running", "skipped": "skipped"}[status]
+	row.SourceFreshness = "unknown"
+	if !captured.IsZero() && !captured.After(at) {
+		row.SourceFreshness = "fresh"
+		if at.Sub(captured) > maxAge {
+			row.SourceFreshness = "stale"
+		}
 	}
 	row.Captured = captured
 	row.Uploaded = uploaded

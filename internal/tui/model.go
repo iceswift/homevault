@@ -21,6 +21,7 @@ type project struct {
 	captured, uploaded                                       time.Time
 	readiness                                                *statusdata.Readiness
 	backupCheck                                              string
+	sourceFreshness                                          string
 	historyKnown                                             bool
 	history                                                  []statusdata.JobRecord
 }
@@ -39,6 +40,7 @@ type Options struct {
 	ASCII, NoColor, Details bool
 	Page, Project           string
 	Context                 string
+	Workflows               bool
 	Location                *time.Location
 }
 
@@ -63,6 +65,7 @@ type Model struct {
 	historyProject                           string
 	contextLabel                             string
 	readinessProject                         string
+	workflowView                             bool
 }
 
 func newLayout(options Options) (Model, error) {
@@ -406,6 +409,9 @@ func (m Model) state(p project) string {
 	return m.ink(labels[p.state], colors[p.state])
 }
 func (m Model) detail(p project, width int, compact bool) []string {
+	if m.workflowView {
+		return m.workflowDetail(p, width, compact)
+	}
 	if m.jobs != nil {
 		return m.jobDetail(p, width, compact)
 	}
@@ -448,6 +454,9 @@ func (m Model) detail(p project, width int, compact bool) []string {
 	return wrapped
 }
 func (m Model) list(width, height int) []string {
+	if m.workflowView {
+		return m.workflowList(width, height)
+	}
 	if m.jobs != nil {
 		return m.jobList(width, height)
 	}
@@ -520,6 +529,9 @@ func (m Model) layout() (head, footer []string, available int) {
 	head = []string{m.accent("HOMEVAULT") + m.muted("  /  DESIGN PREVIEW"), m.muted("Synthetic data only - no real services"), m.line(width)}
 	if m.live {
 		head = []string{m.accent("HOMEVAULT") + m.muted("  /  LOCAL RECORDS - READ ONLY"), m.muted("Ages at last read; no live checks"), m.line(width)}
+	}
+	if m.workflowView {
+		head = []string{m.accent("HOMEVAULT") + m.muted(" / WORKFLOWS - READ ONLY"), m.muted(m.contextLabel + " | local evidence; no actions or live checks"), m.line(width)}
 	}
 	if m.jobs != nil {
 		head = []string{m.accent("HOMEVAULT") + m.muted(" / MANUAL FILE JOBS"), m.muted(m.contextLabel + " | b reviews; typed confirmation required"), m.line(width)}

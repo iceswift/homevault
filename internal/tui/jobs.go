@@ -24,6 +24,7 @@ type jobEventMsg struct{ event statusdata.JobEvent }
 type jobEvents <-chan statusdata.JobEvent
 
 func NewManualJobs(options Options, data statusdata.Snapshot, loader Loader, jobs Jobs) (Model, error) {
+	options.Workflows = false
 	m, err := NewReadOnly(options, data, loader)
 	if err != nil {
 		return m, err

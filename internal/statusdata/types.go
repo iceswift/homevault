@@ -10,6 +10,7 @@ type Project struct {
 	Captured, Uploaded                   time.Time
 	Readiness                            *Readiness
 	BackupCheck                          string
+	SourceFreshness                      string
 	HistoryKnown                         bool
 	History                              []JobRecord
 }

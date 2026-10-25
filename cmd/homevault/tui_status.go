@@ -24,6 +24,7 @@ func runTUIStatus(ctx context.Context, args []string) error {
 	page := fs.String("page", "overview", "overview or projects")
 	project := fs.String("project", "", "select a workflow ID from the plan")
 	details := fs.Bool("details", false, "open project details")
+	displayContext := fs.String("context", "unknown", "operator label: lab, production or unknown; never inferred")
 	zone := fs.String("timezone", "Local", "display timezone (Local, UTC or IANA name)")
 	if err := fs.Parse(args); err != nil {
 		if err == flag.ErrHelp {
@@ -48,7 +49,7 @@ func runTUIStatus(ctx context.Context, args []string) error {
 	if err != nil {
 		return err
 	}
-	model, err := tui.NewReadOnly(tui.Options{Width: *width, Height: *height, ASCII: *ascii || os.Getenv("TERM") == "dumb", NoColor: *noColor || *render || os.Getenv("NO_COLOR") != "" || os.Getenv("TERM") == "dumb", Page: *page, Project: *project, Details: *details, Location: location}, data, load)
+	model, err := tui.NewReadOnly(tui.Options{Workflows: true, Context: *displayContext, Width: *width, Height: *height, ASCII: *ascii || os.Getenv("TERM") == "dumb", NoColor: *noColor || *render || os.Getenv("NO_COLOR") != "" || os.Getenv("TERM") == "dumb", Page: *page, Project: *project, Details: *details, Location: location}, data, load)
 	if err != nil {
 		return err
 	}

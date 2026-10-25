@@ -20,6 +20,8 @@ func (m Model) backupLabel(p project) string {
 		return m.ink("Recorded cancelled", "38;5;221")
 	case "running":
 		return "Running record"
+	case "skipped":
+		return "Recorded skipped"
 	case "no-record":
 		return "No local record"
 	default:

@@ -98,6 +98,9 @@ Run `./bin/homevault tui-status --plan /absolute/reviewed-workflows.json` with a
 existing coordinator plan. Overview/Projects read local metadata; `r` refreshes
 manually. No engine actions, cloud checks, notifications or state writes occur.
 
+Use `--context production` to label an explicitly selected real workflow plan.
+Backup/check, source freshness, plan gates and recovery evidence are separate;
+a disabled gate does not erase prior backup evidence.
 See [read-only status and record scope](docs/TUI-STATUS.md). Missing local records
 do not mean cloud backups are absent. This mode is not in the published Preview.
 

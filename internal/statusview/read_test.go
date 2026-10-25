@@ -144,7 +144,7 @@ func TestLegacyContextNeverInfersSourceFreshness(t *testing.T) {
 		t.Fatal(err)
 	}
 	row := data.Projects[0]
-	if row.State != "unverified" || !row.Captured.IsZero() || !row.Uploaded.Equal(finished) || row.RecordScope != "Legacy engine job only" {
+	if row.State != "unverified" || row.BackupCheck != "passed" || row.SourceFreshness != "unknown" || !row.Captured.IsZero() || !row.Uploaded.Equal(finished) || row.RecordScope != "Legacy engine job only" {
 		t.Fatal("legacy job treated as coordinator proof")
 	}
 	record["repository_id"] = "another-repository"
@@ -309,5 +309,33 @@ func TestPolicyChangeDuringReadIsNotAccepted(t *testing.T) {
 	}
 	if _, err := readSnapshot(f.plan, testNow, read); err == nil {
 		t.Fatal("mixed policy generation was accepted")
+	}
+}
+
+func TestWorkflowEvidenceDoesNotConflateGateFreshnessAndBackup(t *testing.T) {
+	for _, enabled := range []bool{true, false} {
+		f := newFixture(t, enabled)
+		record := f.success(t, testNow.Add(-50*time.Hour), testNow.Add(-time.Hour))
+		writeDoc(t, f.statePath(), record)
+		data, err := Read(f.plan, testNow)
+		if err != nil {
+			t.Fatal(err)
+		}
+		p := data.Projects[0]
+		if p.BackupCheck != "passed" || p.SourceFreshness != "stale" || !strings.Contains(p.Recovery, "not inspected") {
+			t.Fatal("evidence dimensions conflated")
+		}
+		if !enabled && p.State != "inactive" {
+			t.Fatal("plan gate changed")
+		}
+		record["binding"] = "invalid"
+		writeDoc(t, f.statePath(), record)
+		data, err = Read(f.plan, testNow)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if data.Projects[0].BackupCheck != "unknown" || data.Projects[0].SourceFreshness != "unknown" {
+			t.Fatal("invalid binding retained evidence")
+		}
 	}
 }
