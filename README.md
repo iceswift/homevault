@@ -137,9 +137,15 @@ successful manual test do not mean an automatic schedule is active.
 | Recover on another machine | [Recovery kit](docs/RECOVERY-KIT.md) · [Rebuild runbook](docs/REBUILD.md) |
 | Develop / inspect plans | [Testing](docs/TESTING.md) · [Roadmap](docs/ROADMAP.md) |
 
-Questions or reproducible problems can go in [GitHub issues](https://github.com/iceswift/homevault/issues).
-Include the version, OS, command and redacted error; never attach real keys,
-private configuration, database dumps or OAuth responses.
+## Contribute and get help
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, test commands and PR scope.
+Use the [issue forms](https://github.com/iceswift/homevault/issues/new/choose) for
+bugs, feature/UX requests and usage questions. Small docs fixes are welcome.
+
+Report vulnerabilities through the private channel in [SECURITY.md](SECURITY.md).
+Never put keys, OAuth responses, webhook URLs, private config or real backup data
+in issues, PRs or screenshots. Preview status does not imply a security audit.
 
 [MIT License](LICENSE). Built around [Restic](https://restic.net/) and
 [rclone](https://rclone.org/); their encryption and transport work is credited to

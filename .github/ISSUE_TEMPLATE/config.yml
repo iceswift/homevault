@@ -1,0 +1,15 @@
+{
+  "blank_issues_enabled": false,
+  "contact_links": [
+    {
+      "name": "Start with the local Quick Start",
+      "url": "https://github.com/iceswift/homevault/blob/main/docs/QUICKSTART.md",
+      "about": "Try a local encrypted backup and verified restore without a cloud account."
+    },
+    {
+      "name": "Report a vulnerability privately",
+      "url": "https://github.com/iceswift/homevault/security/advisories/new",
+      "about": "Use private reporting for security-sensitive bugs. Never post credentials."
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "name": "Bug report",
+  "description": "Report a reproducible problem using generated data.",
+  "title": "[Bug] ",
+  "body": [
+    {
+      "type": "markdown",
+      "attributes": {
+        "value": "This issue is public. Use generated data and redact identifying details. Do not attach keys, OAuth JSON/tokens, rclone.conf, .env, webhook URLs, database dumps or backup archives. Suspected vulnerabilities: [report privately](https://github.com/iceswift/homevault/security/advisories/new)."
+      }
+    },
+    {
+      "type": "input",
+      "id": "version",
+      "attributes": {
+        "label": "HomeVault version or commit",
+        "description": "Output of homevault version, or the full source commit.",
+        "placeholder": "homevault v0.1.0-preview.1"
+      },
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "type": "textarea",
+      "id": "environment",
+      "attributes": {
+        "label": "Environment",
+        "description": "OS/release, architecture, installation method, and relevant Restic/rclone/Python versions. No hostnames or account identifiers.",
+        "placeholder": "Ubuntu 24.04 amd64; release archive; Restic 0.19.1"
+      },
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "type": "textarea",
+      "id": "steps",
+      "attributes": {
+        "label": "Steps to reproduce",
+        "description": "Minimal commands using generated data. Replace private paths and identifiers consistently.",
+        "placeholder": "1. Create a new synthetic sandbox\n2. Run ...\n3. Observe ..."
+      },
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "type": "textarea",
+      "id": "behavior",
+      "attributes": {
+        "label": "Expected and actual behavior",
+        "description": "Include a short redacted error and which stage failed. Do not paste entire logs or configuration."
+      },
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "type": "textarea",
+      "id": "evidence",
+      "attributes": {
+        "label": "Checks and impact",
+        "description": "Can this reproduce in the local Quick Start? Was this capture, upload, check or restore? State skipped checks and suspected impact.",
+        "placeholder": "Reproduces with generated files; no real data attached."
+      },
+      "validations": {
+        "required": false
+      }
+    },
+    {
+      "type": "checkboxes",
+      "id": "privacy",
+      "attributes": {
+        "label": "Before submitting",
+        "options": [
+          {
+            "label": "I removed credentials, private configuration and real application/backup data from this report.",
+            "required": true
+          }
+        ]
+      }
+    }
+  ]
+}

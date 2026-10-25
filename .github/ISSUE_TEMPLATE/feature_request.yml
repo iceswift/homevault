@@ -1,0 +1,80 @@
+{
+  "name": "Feature or UX request",
+  "description": "Explain a user task, missing behavior or documentation improvement.",
+  "title": "[Feature] ",
+  "body": [
+    {
+      "type": "markdown",
+      "attributes": {
+        "value": "This issue is public. Use generated data and redact identifying details. Do not attach keys, OAuth JSON/tokens, rclone.conf, .env, webhook URLs, database dumps or backup archives. Suspected vulnerabilities: [report privately](https://github.com/iceswift/homevault/security/advisories/new)."
+      }
+    },
+    {
+      "type": "dropdown",
+      "id": "area",
+      "attributes": {
+        "label": "Area",
+        "description": "Choose the closest area.",
+        "options": [
+          "CLI / TUI",
+          "Backup / capture",
+          "Restore / recovery",
+          "Google Drive / transport",
+          "Scheduling / notifications",
+          "Retention / prune",
+          "Documentation / onboarding",
+          "Other"
+        ]
+      },
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "type": "textarea",
+      "id": "problem",
+      "attributes": {
+        "label": "User task and problem",
+        "description": "What are you trying to accomplish, and where does the current behavior get in the way?"
+      },
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "type": "textarea",
+      "id": "outcome",
+      "attributes": {
+        "label": "Desired outcome",
+        "description": "Describe the behavior the user should experience. An implementation proposal is optional."
+      },
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "type": "textarea",
+      "id": "alternatives",
+      "attributes": {
+        "label": "Workarounds and tradeoffs",
+        "description": "Mention alternatives, resource costs, permissions or compatibility effects if known."
+      },
+      "validations": {
+        "required": false
+      }
+    },
+    {
+      "type": "checkboxes",
+      "id": "privacy",
+      "attributes": {
+        "label": "Before submitting",
+        "options": [
+          {
+            "label": "I removed credentials, private configuration and real application/backup data from this report.",
+            "required": true
+          }
+        ]
+      }
+    }
+  ]
+}
