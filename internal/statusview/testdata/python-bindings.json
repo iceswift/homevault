@@ -1,0 +1,23 @@
+[
+  {
+    "repository": "rclone:demo:Samples",
+    "rclone_config_file": "/private/example/rclone.conf",
+    "workflow_json": "{\"name\": \"demo\", \"project\": \"demo\", \"kind\": \"files\", \"enabled\": true, \"max_age_hours\": 36, \"files\": [], \"trees\": []}",
+    "repo_id": "d5e56a043244c465133a5c6c6657392c1643e2165db42dfa49205e6ae6b0a9e2",
+    "binding": "0d317ed6619cea51e94c38b34fb62a3f43e4feddc461cb8b9eb6de691fda4c5f"
+  },
+  {
+    "repository": "rclone:demo:Samples",
+    "rclone_config_file": "/private/example/rclone.conf",
+    "workflow_json": "{\"name\": \"unicode\", \"project\": \"unicode\", \"kind\": \"files\", \"enabled\": false, \"max_age_hours\": 36, \"files\": [{\"source\": \"/srv/démo/📁.txt\", \"target\": \"quote\\\"<>&.txt\"}], \"trees\": []}",
+    "repo_id": "d5e56a043244c465133a5c6c6657392c1643e2165db42dfa49205e6ae6b0a9e2",
+    "binding": "eeba15f1128710960530b4dfe5f3a994669eee2819db07fa340978bcd21b6a90"
+  },
+  {
+    "repository": "rclone:demo:Samples",
+    "rclone_config_file": "/private/example/rclone.conf",
+    "workflow_json": "{\"name\": \"nested\", \"project\": \"nested\", \"kind\": \"json\", \"enabled\": true, \"max_age_hours\": 12, \"window\": {\"timezone\": \"Asia/Bangkok\", \"days\": [0, 6], \"start\": \"03:00\", \"minutes\": 30}, \"files\": [\"a.json\"], \"special\": {\"a\": null, \"b\": true, \"c\": \"\\t\\r\\n\", \"d\": 1000000000000000000000000}}",
+    "repo_id": "d5e56a043244c465133a5c6c6657392c1643e2165db42dfa49205e6ae6b0a9e2",
+    "binding": "f0f5f66001f32814fb1865ad816c8c459b241358244d79ce4394fa301f4ed54b"
+  }
+]

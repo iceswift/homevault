@@ -96,5 +96,6 @@ Try Overview -> filter -> project details -> back on a desktop and a narrow SSH
 terminal. Check whether selection/context stay understandable, errors stand out
 without color and the source/upload/recovery distinctions are clear.
 
-Future stages may add read-only live providers and, separately, explicit reviewed
-actions. This prototype does not authorize either and contains no engine reference.
+A separate [read-only local-record view](TUI-STATUS.md) is now available on main.
+The prototype remains synthetic. Explicit reviewed actions are still future work;
+this prototype contains no engine reference and never initiates an operation.

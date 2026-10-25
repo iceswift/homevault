@@ -8,6 +8,7 @@ Dates use `YYYY-MM-DD`; release history links point to the exact tag or comparis
 
 ### Added
 
+- Native `tui-status --plan FILE` local-record view with manual async refresh, explicit coordinator/legacy provenance, source/upload age separation and conservative Unknown states. It performs no engine actions, credential-file reads, cloud/service checks or state writes.
 - Isolated `tui-demo` design prototype with mock Overview/Projects/details, filtering, responsive layouts, ASCII/monochrome support and deterministic frame rendering. It never loads live config or starts backup operations.
 - Contributor guide, security policy, private vulnerability reporting and structured issue/PR templates.
 - Captured synthetic TUI preview with plain-text provenance, a static vector banner and clearer README navigation.
@@ -24,7 +25,7 @@ Dates use `YYYY-MM-DD`; release history links point to the exact tag or comparis
 ### Upgrade notes
 
 - These changes are on main and subsequent CI artifacts; they are **not** inside `v0.1.0-preview.1`.
-- A new display-only `tui-demo` command is available on main. The existing live CLI/TUI, engine behavior, configuration schemas and Go dependencies are unchanged; no application-data migration is introduced.
+- New display-only `tui-demo` and read-only `tui-status` commands are available on main. The existing live CLI/TUI, engine behavior, configuration schemas and Go dependencies are unchanged; no application-data migration is introduced.
 - These documentation/packaging updates do not enable timers, change repository keys, activate retention or update a running server automatically.
 
 ## [v0.1.0-preview.1] - 2026-10-25

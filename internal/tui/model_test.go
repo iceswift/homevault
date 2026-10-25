@@ -1,4 +1,4 @@
-package tuidemo
+package tui
 
 import (
 	"fmt"

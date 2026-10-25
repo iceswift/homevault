@@ -7,7 +7,7 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"homevault/internal/tuidemo"
+	"homevault/internal/tui"
 )
 
 func runTUIDemo(ctx context.Context, args []string) error {
@@ -29,7 +29,7 @@ func runTUIDemo(ctx context.Context, args []string) error {
 	if fs.NArg() != 0 {
 		return fmt.Errorf("tui-demo accepts flags only; it never opens a real project")
 	}
-	m, err := tuidemo.New(tuidemo.Options{Width: *width, Height: *height, ASCII: *ascii || os.Getenv("TERM") == "dumb", NoColor: *noColor || *render || os.Getenv("NO_COLOR") != "" || os.Getenv("TERM") == "dumb", Page: *page, Project: *project, Details: *details})
+	m, err := tui.New(tui.Options{Width: *width, Height: *height, ASCII: *ascii || os.Getenv("TERM") == "dumb", NoColor: *noColor || *render || os.Getenv("NO_COLOR") != "" || os.Getenv("TERM") == "dumb", Page: *page, Project: *project, Details: *details})
 	if err != nil {
 		return err
 	}

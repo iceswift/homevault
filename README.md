@@ -91,6 +91,18 @@ layouts, ASCII/monochrome modes and the fixed sample states.
 
 </details>
 
+<details>
+<summary><strong>Read local workflow status (read-only, current main)</strong></summary>
+
+Run `./bin/homevault tui-status --plan /absolute/reviewed-workflows.json` with an
+existing coordinator plan. Overview/Projects read local metadata; `r` refreshes
+manually. No engine actions, cloud checks, notifications or state writes occur.
+
+See [read-only status and record scope](docs/TUI-STATUS.md). Missing local records
+do not mean cloud backups are absent. This mode is not in the published Preview.
+
+</details>
+
 ## Capabilities
 
 | Available | Experimental | Outside current scope |

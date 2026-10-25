@@ -1,6 +1,6 @@
-// Package tuidemo contains a synthetic, side-effect-free UI design prototype.
-// The model never loads configuration, calls the engine or starts commands.
-package tuidemo
+// Package tui displays synthetic previews or explicitly loaded read-only records.
+// Navigation/rendering never invoke engine operations; live refresh uses an explicit read-only data loader.
+package tui
 
 import (
 	"fmt"
@@ -16,6 +16,7 @@ var clock = time.Date(2026, 10, 25, 6, 0, 0, 0, time.UTC)
 
 type project struct {
 	id, name, kind, state, attempt, recovery, schedule, note string
+	activation, scope, projectName                           string
 	captured, uploaded                                       time.Time
 }
 
@@ -32,6 +33,7 @@ type Options struct {
 	Width, Height           int
 	ASCII, NoColor, Details bool
 	Page, Project           string
+	Location                *time.Location
 }
 
 type Model struct {
@@ -39,10 +41,15 @@ type Model struct {
 	ascii, noColor, details, searching, help bool
 	query, notice                            string
 	projects                                 []project
+	live, loading, readFailed                bool
+	now                                      time.Time
+	location                                 *time.Location
+	loader                                   Loader
+	notifications                            string
 }
 
-func New(options Options) (Model, error) {
-	m := Model{width: options.Width, height: options.Height, ascii: options.ASCII, noColor: options.NoColor, details: options.Details, projects: fixtures()}
+func newLayout(options Options) (Model, error) {
+	m := Model{width: options.Width, height: options.Height, ascii: options.ASCII, noColor: options.NoColor, details: options.Details, now: clock, location: options.Location}
 	if m.width == 0 {
 		m.width = 100
 	}
@@ -50,15 +57,27 @@ func New(options Options) (Model, error) {
 		m.height = 30
 	}
 	if m.width < 1 || m.height < 1 || m.width > 500 || m.height > 200 {
-		return m, fmt.Errorf("preview dimensions must be 1..500 columns and 1..200 rows")
+		return m, fmt.Errorf("terminal dimensions must be 1..500 columns and 1..200 rows")
 	}
 	switch options.Page {
 	case "", "overview":
 	case "projects":
 		m.page = 1
 	default:
-		return m, fmt.Errorf("preview page must be overview or projects")
+		return m, fmt.Errorf("page must be overview or projects")
 	}
+	if m.location == nil {
+		m.location = time.UTC
+	}
+	return m, nil
+}
+
+func New(options Options) (Model, error) {
+	m, err := newLayout(options)
+	if err != nil {
+		return m, err
+	}
+	m.projects = fixtures()
 	if options.Project != "" {
 		found := false
 		for i, p := range m.projects {
@@ -79,6 +98,11 @@ func (m Model) filtered() []project {
 	var result []project
 	for _, p := range m.projects {
 		if strings.Contains(strings.ToLower(p.name+" "+p.kind), strings.ToLower(m.query)) {
+			if m.live && (m.readFailed || m.loading) {
+				p.state = "unknown"
+				p.attempt = "Unknown - cached record"
+				p.note = "Cached values are not current; refresh to validate local records. " + p.note
+			}
 			result = append(result, p)
 		}
 	}
@@ -107,6 +131,20 @@ func (m *Model) clamp() {
 }
 func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := message.(type) {
+	case refreshResult:
+		if !m.live || !m.loading {
+			return m, nil
+		}
+		m.loading = false
+		if msg.err != nil || m.applyData(msg.data) != nil {
+			m.readFailed = true
+			m.notice = "Refresh failed; cached records are not current."
+		} else {
+			m.readFailed = false
+			m.notice = "Local records refreshed. No cloud or service checks were made."
+		}
+		m.clamp()
+		return m, nil
 	case tea.WindowSizeMsg:
 		m.width = max(1, msg.Width)
 		m.height = max(1, msg.Height)
@@ -214,8 +252,23 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		case "?":
 			m.help = true
 			m.offset = 0
-		case "b", "c", "r", "d", "a", "s", "p":
+		case "r":
+			if m.live && m.loader != nil {
+				if m.loading {
+					return m, nil
+				}
+				m.loading = true
+				m.readFailed = false
+				load := m.loader
+				return m, func() tea.Msg { data, err := load(); return refreshResult{data: data, err: err} }
+			}
 			m.notice = "Prototype only. No job started; no data changed."
+		case "b", "c", "d", "a", "s", "p":
+			if m.live {
+				m.notice = "Read-only view. No operation was started."
+			} else {
+				m.notice = "Prototype only. No job started; no data changed."
+			}
 		}
 		m.clamp()
 	}
@@ -243,11 +296,17 @@ func pad(text string, width int) string {
 func (m Model) wrap(text string, width int) []string {
 	return strings.Split(ansi.Wrap(text, max(1, width), ""), "\n")
 }
-func age(value time.Time) string {
+func (m Model) age(value time.Time) string {
 	if value.IsZero() {
+		if m.live {
+			return "unknown"
+		}
 		return "never"
 	}
-	minutes := int(clock.Sub(value).Minutes())
+	if value.After(m.now) {
+		return "future"
+	}
+	minutes := int(m.now.Sub(value).Minutes())
 	if minutes < 60 {
 		return fmt.Sprintf("%dm", minutes)
 	}
@@ -256,19 +315,39 @@ func age(value time.Time) string {
 func (m Model) state(p project) string {
 	labels := map[string]string{"passed": "Passed", "stale": "Stale source", "failed": "Check failed", "inactive": "Not activated"}
 	colors := map[string]string{"passed": "38;5;114", "stale": "38;5;221", "failed": "38;5;210", "inactive": "38;5;245"}
+	labels["unknown"] = "Unknown"
+	labels["unverified"] = "Unverified"
+	labels["running"] = "Running record"
+	colors["unknown"] = "38;5;221"
+	colors["unverified"] = "38;5;221"
+	colors["running"] = "38;5;81"
+	if m.live {
+		labels["failed"] = "Failed"
+		labels["inactive"] = "Disabled in plan"
+	}
 	return m.ink(labels[p.state], colors[p.state])
 }
 func (m Model) detail(p project, width int, compact bool) []string {
 	lines := []string{m.accent(p.name), m.state(p), ""}
 	stamp := func(t time.Time) string {
 		if t.IsZero() {
+			if m.live {
+				return "Unknown"
+			}
 			return "Never"
 		}
-		return t.Format("02 Jan, 15:04 UTC") + " (" + age(t) + " ago)"
+		return t.In(m.location).Format("02 Jan, 15:04 MST") + " (" + m.age(t) + " ago)"
 	}
 	fields := [][2]string{{"Source captured", stamp(p.captured)}, {"Verified upload", stamp(p.uploaded)}, {"Latest attempt", p.attempt}, {"Recovery drill", p.recovery}, {"Schedule", p.schedule}}
+	if m.live {
+		fields[1][0] = "Recorded verified upload"
+		fields = append([][2]string{{"Record scope", p.scope}, {"Workflow gate", p.activation}}, fields...)
+	}
 	if !compact {
 		fields = append([][2]string{{"Source type", p.kind}}, fields...)
+		if m.live {
+			fields = append([][2]string{{"Project ID", p.projectName}}, fields...)
+		}
 	}
 	for _, field := range fields {
 		if compact {
@@ -290,6 +369,9 @@ func (m Model) detail(p project, width int, compact bool) []string {
 func (m Model) list(width, height int) []string {
 	projects := m.filtered()
 	if len(projects) == 0 {
+		if m.live {
+			return m.wrap("No matching local projects. Esc clears the filter; / edits it.", width)
+		}
 		return m.wrap("No matching sample projects. Esc clears the filter; / edits it.", width)
 	}
 	var lines []string
@@ -317,9 +399,9 @@ func (m Model) list(width, height int) []string {
 			name = m.accent(name)
 		}
 		if rowHeight == 1 {
-			lines = append(lines, pad(name, 23)+pad(age(p.captured), 12)+pad(age(p.uploaded), 12)+m.state(p))
+			lines = append(lines, pad(name, 23)+pad(m.age(p.captured), 12)+pad(m.age(p.uploaded), 12)+m.state(p))
 		} else {
-			lines = append(lines, name+" / "+m.state(p), m.muted("  source "+age(p.captured)+" | upload "+age(p.uploaded)), "")
+			lines = append(lines, name+" / "+m.state(p), m.muted("  source "+m.age(p.captured)+" | upload "+m.age(p.uploaded)), "")
 		}
 	}
 	if start > 0 || end < len(projects) {
@@ -340,12 +422,18 @@ func window(lines []string, offset, height int) []string {
 	return append(result, fmt.Sprintf("Lines %d-%d/%d | PgUp/PgDn", start+1, min(len(lines), start+content), len(lines)))
 }
 func (m Model) helpLines(width int) []string {
+	if m.live {
+		return m.liveHelp(width)
+	}
 	return m.wrap("DESIGN PREVIEW HELP\n\nThis command has no engine or live configuration.\nAll projects, ages, results and recovery evidence are synthetic.\n\nTab / 1 / 2: choose Overview or Projects\nUp/Down or j/k: select a sample\nEnter: open full project details\n/: filter projects by name or type\nEsc: return, or clear the filter\nPgUp/PgDn: scroll details or a long list\n?: show this help\nq / Ctrl+C: quit (q can be typed while searching)\n\nBackup, restore, checks and settings are unavailable here.\nUse tui for the existing live interface, not this prototype.\nNo background jobs, timers, file writes or network calls are made.", width)
 }
 
 func (m Model) layout() (head, footer []string, available int) {
 	width, height := max(1, m.width), max(1, m.height)
 	head = []string{m.accent("HOMEVAULT") + m.muted("  /  DESIGN PREVIEW"), m.muted("Synthetic data only - no real services"), m.line(width)}
+	if m.live {
+		head = []string{m.accent("HOMEVAULT") + m.muted("  /  LOCAL RECORDS - READ ONLY"), m.muted("Ages at last read; no live checks"), m.line(width)}
+	}
 	tabs := []string{"[1] Overview", "[2] Projects"}
 	tabs[m.page] = m.accent(tabs[m.page])
 	head = append(head, strings.Join(tabs, "    "), "")
@@ -355,13 +443,22 @@ func (m Model) layout() (head, footer []string, available int) {
 		head = append(head, m.wrap("Filter: "+m.query, width)...)
 	}
 	if m.page == 0 && !m.details && !m.help {
-		if width < 80 {
+		if m.live {
+			head = append(head, m.wrap(m.summary(), width)...)
+		} else if width < 80 {
 			head = append(head, m.wrap("4 samples: 1 pass / 1 stale / 1 fail / 1 off", width)...)
 			head = append(head, "2 samples need attention")
 		} else {
 			head = append(head, m.wrap("SAMPLE HEALTH  1 passed / 1 stale / 1 failed / 1 inactive", width)...)
 			head = append(head, m.wrap("Attention: Notes demo has old source data; Files demo failed its check.", width)...)
 		}
+	}
+	if m.live && (m.readFailed || m.loading) {
+		label := "REFRESH FAILED - cached records"
+		if m.loading {
+			label = "Refreshing local files; prior values are cached"
+		}
+		head = append(head, m.wrap(m.ink(label, "38;5;221"), width)...)
 	}
 	if m.notice != "" {
 		head = append(head, m.wrap(m.notice, width)...)
@@ -377,8 +474,19 @@ func (m Model) layout() (head, footer []string, available int) {
 	if m.help {
 		hint = "Esc back | PgUp/PgDn scroll | q quit"
 	}
+	if m.live && !m.searching && !m.help {
+		hint += " | r refresh"
+	}
 	footer = append([]string{m.muted(m.line(width))}, m.wrap(hint, width)...)
-	footer = append(footer, m.muted("DEMO ONLY | fixed clock: 25 Oct 2026, 06:00 UTC"))
+	if m.live {
+		label := "LOCAL RECORDS | last read " + m.now.In(m.location).Format("02 Jan 2006 15:04 MST")
+		if width < 80 {
+			label = "READ ONLY | read " + m.now.In(m.location).Format("02 Jan 15:04 MST")
+		}
+		footer = append(footer, m.muted(label))
+	} else {
+		footer = append(footer, m.muted("DEMO ONLY | fixed clock: 25 Oct 2026, 06:00 UTC"))
+	}
 	available = max(1, height-len(head)-len(footer))
 	return head, footer, available
 }
@@ -386,7 +494,11 @@ func (m Model) layout() (head, footer []string, available int) {
 func (m Model) View() string {
 	width, height := max(1, m.width), max(1, m.height)
 	if width < 40 || height < 18 {
-		lines := []string{"HOMEVAULT DEMO", "Resize to at least 40x18", "q / Ctrl+C: quit"}
+		title := "HOMEVAULT DEMO"
+		if m.live {
+			title = "HOMEVAULT READ ONLY"
+		}
+		lines := []string{title, "Resize to at least 40x18", "q / Ctrl+C: quit"}
 		if len(lines) > height {
 			lines = lines[:height]
 		}
