@@ -42,7 +42,7 @@ def main():
             raise SystemExit('tagged packages require clean tracked source at the exact tag commit')
     go_version = subprocess.check_output(['go', 'version'], text=True).strip()
     # Explicit allowlist: never archive working directories, credentials or data.
-    files = {name: (ROOT / name).read_bytes() for name in ['LICENSE', 'README.md', 'CONTRIBUTING.md', 'SECURITY.md']}
+    files = {name: (ROOT / name).read_bytes() for name in ['LICENSE', 'README.md', 'CONTRIBUTING.md', 'SECURITY.md', 'CHANGELOG.md']}
     for doc in DOCS:
         files['docs/' + doc] = (ROOT / 'docs' / doc).read_bytes()
     files['scripts/quickstart-smoke.sh'] = (ROOT / 'scripts/quickstart-smoke.sh').read_bytes()

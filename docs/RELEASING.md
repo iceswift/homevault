@@ -91,6 +91,12 @@ checks both checksums, archive safety, required files, metadata and ELF architec
 without executing binaries. Negative tests cover corruption, unsafe members,
 source mismatch and duplicate checksum entries. This is not a malware scanner.
 
+Maintain [CHANGELOG.md](../CHANGELOG.md) alongside version-specific notes. Before
+creating a candidate, move the reviewed `Unreleased` entries into its version/date,
+leave a fresh `Unreleased` section, update comparison links and explicitly record
+breaking changes/migration needs when present. Preserve historical release entries;
+a later documentation edit does not change an already published archive.
+
 For a candidate, commit version-specific notes under `docs/releases/VERSION.md`,
 complete main CI, then create/push the reviewed semantic version tag. The tag
 workflow repeats verification, builds and tests the **exact packaged binary**, and

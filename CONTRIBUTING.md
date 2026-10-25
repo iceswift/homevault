@@ -65,6 +65,7 @@ ARM64 runtime and Windows deployment remain unvalidated.
 - Do not introduce automatic app stops, scheduling, deletion, network calls or credential discovery into read-only commands.
 - Keep dependencies small; explain why a new dependency is needed and update its lock/checksum files together.
 - Update user-facing help, docs and fixtures when behavior changes. The Quick Start Bash block must match its tested script.
+- Record user-facing changes under `Unreleased` in [CHANGELOG.md](CHANGELOG.md), including compatibility or migration effects. Do not describe main-only changes as already released.
 
 Use the PR template to describe validation that actually ran, including skipped
 checks and known limitations. Screenshots or terminal examples help TUI changes,

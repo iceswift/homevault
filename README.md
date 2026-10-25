@@ -143,6 +143,8 @@ not a security audit. Schedules and retention depend on each deployment.
 
 ## Documentation
 
+Release history and upgrade notes: **[Changelog](CHANGELOG.md)**.
+
 | Start | Operate | Recover |
 | --- | --- | --- |
 | [Local Quick Start](docs/QUICKSTART.md) | [Jobs & alerts](docs/SCHEDULING-ALERTS.md) | [Recovery kit](docs/RECOVERY-KIT.md) |
