@@ -62,6 +62,9 @@ The executable is prebuilt; you do not need Go. Install Restic separately. The
 demo uses Bash and Python 3.11+; rclone is only needed for cloud storage. No sudo
 or application data is needed once those dependencies are installed.
 
+Trying HomeVault for the first time? Follow the [first-user trial](docs/FIRST-USER-TRIAL.md)
+and report where you needed help. Independent first-user validation is still pending.
+
 <details>
 <summary><strong>Build from source instead</strong></summary>
 

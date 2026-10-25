@@ -62,3 +62,11 @@ doctor, encrypted job backup, status, retention preview and byte-identical resto
 This did not stop any production app or access Drive/Discord. Arm64 runtime has
 not been tested. CI/draft-release workflows require their own hosted-run evidence;
 local packaging alone does not prove a GitHub workflow run or published release.
+
+## Independent first-user validation
+
+The [first-user trial](FIRST-USER-TRIAL.md) and dedicated issue form are ready.
+Independent participant evidence remains pending. CI package/restore checks and
+operator terminal sessions are automated/maintainer rehearsals, not independent
+usability studies. Record the exact version, restore result, help needed and
+retest outcome before claiming successful first-user onboarding.

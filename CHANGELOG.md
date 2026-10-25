@@ -8,6 +8,7 @@ Dates use `YYYY-MM-DD`; release history links point to the exact tag or comparis
 
 ### Added
 
+- First-user trial guide and feedback form distinguish published Preview/current-main features, byte-verified restore, optional TUI tasks and independent versus maintainer/automated evidence. Independent participant results remain pending.
 - Local readiness panel (`d`) in manual-job TUI: selected config/destination, executable lookup, bounded path/credential metadata and next actions. Missing tools keep diagnostics open with jobs blocked; no tool is run, credential content opened, write probe or cloud request made.
 - Read-only local attempt history inside `tui-jobs` (`h`), with newest-first deduplication, recorded durations, separate backup/check results and conservative refresh-error states.
 - Separate `tui-jobs` mode for explicitly configured file-only manual backup/check jobs, typed confirmation, recorded progress and cancellation cleanup. Configuration and previous-job guards run under the engine lock; database/capture/recovery scopes remain blocked.

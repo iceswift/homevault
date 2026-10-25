@@ -10,7 +10,7 @@ blocks = re.findall(r"```bash\n(.*?)```", text, re.S)
 script = (root / "scripts/quickstart-smoke.sh").read_text(encoding="utf-8")
 if blocks != [script]:
     raise SystemExit("FAIL Quick Start Bash block differs from tested smoke script")
-for name in ["README.md", "docs/QUICKSTART.md", "docs/ONBOARDING.md"]:
+for name in ["README.md", "docs/QUICKSTART.md", "docs/ONBOARDING.md", "docs/FIRST-USER-TRIAL.md"]:
     path = root / name
     for link in re.findall(r"\]\(([^)]+)\)", path.read_text(encoding="utf-8")):
         if "://" not in link and not link.startswith("#"):

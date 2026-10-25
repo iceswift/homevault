@@ -1,0 +1,113 @@
+{
+  "name": "First-user trial feedback",
+  "description": "Report installation, byte-verified restore and optional TUI friction.",
+  "title": "[Trial] ",
+  "body": [
+    {
+      "type": "markdown",
+      "attributes": {
+        "value": "Thanks for trying HomeVault. Reports are public. Use generated data and short redacted errors; do not attach secrets, private config, backups or full logs. Follow docs/FIRST-USER-TRIAL.md. Automated/maintainer rehearsals do not count as independent usability feedback."
+      }
+    },
+    {
+      "type": "dropdown",
+      "id": "participant",
+      "attributes": {
+        "label": "Trial role",
+        "description": "Choose the role that describes this run.",
+        "options": [
+          "Independent first-time participant",
+          "Maintainer or existing operator",
+          "Automated rehearsal (not an independent user trial)"
+        ]
+      },
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "type": "input",
+      "id": "version",
+      "attributes": {
+        "label": "Version / full commit and track",
+        "description": "Include the exact release tag or full source commit and whether this was Preview, CI artifact or source build."
+      },
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "type": "textarea",
+      "id": "environment",
+      "attributes": {
+        "label": "Environment and setup time",
+        "description": "OS, architecture, terminal size, relevant tool versions, and dependency setup time. Omit hostnames/account identifiers."
+      },
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "type": "dropdown",
+      "id": "restore",
+      "attributes": {
+        "label": "Byte-verified local restore",
+        "description": "Did the final exact PASS line appear after comparison?",
+        "options": [
+          "Passed: restored proof.txt matched byte for byte",
+          "Failed: command or comparison failed",
+          "Not reached: stopped before the comparison"
+        ]
+      },
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "type": "textarea",
+      "id": "friction",
+      "attributes": {
+        "label": "Time, blockers and help",
+        "description": "Time from prerequisites ready to restore result; first unclear step; any external help; what instruction would have helped. A failure or abandoned run is useful feedback."
+      },
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "type": "textarea",
+      "id": "tui",
+      "attributes": {
+        "label": "Optional redesigned TUI feedback",
+        "description": "For current main/CI: evidence fields, h history, d readiness, b then Esc, narrow terminal/filtering. State completed/skipped/confusing tasks. Preview users can write not available in this version."
+      },
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "type": "textarea",
+      "id": "evidence",
+      "attributes": {
+        "label": "Short result or redacted error",
+        "description": "Use generated examples only. No full logs or private paths."
+      },
+      "validations": {
+        "required": false
+      }
+    },
+    {
+      "type": "checkboxes",
+      "id": "privacy",
+      "attributes": {
+        "label": "Before submitting",
+        "options": [
+          {
+            "label": "I used generated data and removed secrets, private config and real backup data.",
+            "required": true
+          }
+        ]
+      }
+    }
+  ]
+}
