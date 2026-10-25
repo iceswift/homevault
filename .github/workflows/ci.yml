@@ -44,7 +44,7 @@ jobs:
       - name: Build Linux packages and checksums
         run: |
           python3 scripts/package-release.py --version "dev-${GITHUB_SHA:0:12}" --output "$RUNNER_TEMP/homevault-dist"
-          PATH="$RUNNER_TEMP/homevault-tools:$PATH" python3 scripts/verify-release.py "$RUNNER_TEMP/homevault-dist" --version "dev-${GITHUB_SHA:0:12}" --commit "$GITHUB_SHA" --smoke
+          PATH="$RUNNER_TEMP/homevault-tools:$PATH" python3 scripts/verify-release.py "$RUNNER_TEMP/homevault-dist" --version "dev-${GITHUB_SHA:0:12}" --commit "$GITHUB_SHA" --smoke --tui-smoke
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: homevault-linux-preview

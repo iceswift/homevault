@@ -8,6 +8,7 @@ Dates use `YYYY-MM-DD`; release history links point to the exact tag or comparis
 
 ### Added
 
+- Optional extracted-package `--tui-smoke` checks redesigned UI rendering without external tools and verifies generated fixtures remain unchanged; main CI and future draft-release builds run it alongside byte-verified local restore. Older published archives remain verifiable without this flag.
 - First-user trial guide and feedback form distinguish published Preview/current-main features, byte-verified restore, optional TUI tasks and independent versus maintainer/automated evidence. Independent participant results remain pending.
 - Local readiness panel (`d`) in manual-job TUI: selected config/destination, executable lookup, bounded path/credential metadata and next actions. Missing tools keep diagnostics open with jobs blocked; no tool is run, credential content opened, write probe or cloud request made.
 - Read-only local attempt history inside `tui-jobs` (`h`), with newest-first deduplication, recorded durations, separate backup/check results and conservative refresh-error states.

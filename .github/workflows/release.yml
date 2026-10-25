@@ -32,7 +32,7 @@ jobs:
           python3 scripts/fetch-test-age.py "$RUNNER_TEMP/age-tools"
           HOMEVAULT_TEST_RESTIC="$RUNNER_TEMP/tools/restic" HOMEVAULT_TEST_AGE="$RUNNER_TEMP/age-tools/age" go test ./internal/recovery ./integration -count=1
           python3 scripts/package-release.py --version "$GITHUB_REF_NAME" --output "$RUNNER_TEMP/dist"
-          PATH="$RUNNER_TEMP/tools:$PATH" python3 scripts/verify-release.py "$RUNNER_TEMP/dist" --version "$GITHUB_REF_NAME" --commit "$GITHUB_SHA" --smoke
+          PATH="$RUNNER_TEMP/tools:$PATH" python3 scripts/verify-release.py "$RUNNER_TEMP/dist" --version "$GITHUB_REF_NAME" --commit "$GITHUB_SHA" --smoke --tui-smoke
       - name: Create reviewable draft only
         env:
           GH_TOKEN: ${{ github.token }}

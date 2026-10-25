@@ -83,12 +83,18 @@ For a local development package, use a new absolute output directory:
 python3 scripts/verify-quickstart.py
 python3 scripts/test_verify_release.py
 python3 scripts/package-release.py --version dev-0123456789ab --output /absolute/new-dist
-python3 scripts/verify-release.py /absolute/new-dist --version dev-0123456789ab --commit "$(git rev-parse HEAD)" --smoke
+python3 scripts/verify-release.py /absolute/new-dist --version dev-0123456789ab --commit "$(git rev-parse HEAD)" --smoke --tui-smoke
 ```
 
 The final command requires Linux amd64 and Restic on PATH. Without `--smoke`, it
 checks both checksums, archive safety, required files, metadata and ELF architecture
-without executing binaries. Negative tests cover corruption, unsafe members,
+without executing binaries. Optional `--tui-smoke` requires `--smoke` and checks
+`tui-demo`, `tui-status` and blocked `tui-jobs` frame rendering
+from the extracted binary with an empty PATH. It uses generated metadata, verifies
+no fixture/state/repository changes, and does not test interactive input or cloud
+access. Use it for current builds; the original Preview does not contain those
+commands. The default verifier remains compatible with that older archive.
+Negative tests cover corruption, unsafe members,
 source mismatch and duplicate checksum entries. This is not a malware scanner.
 
 Maintain [CHANGELOG.md](../CHANGELOG.md) alongside version-specific notes. Before
@@ -111,3 +117,23 @@ to the separately created draft/published release.
 `scripts/fetch-test-restic.py` and `fetch-test-age.py` fetch pinned official tools
 with pinned SHA-256 checks for Linux amd64 CI/labs, not system installation.
 Dependency updates require review of the version and checksum together.
+
+## Next-preview readiness
+
+Current preparation does not create a tag, GitHub draft, public release or update
+an installed server. Select an exact clean commit and finish its CI before any
+separate candidate step above. Do not rename a development archive to a versioned
+release: its embedded source/version/dirty-state metadata must match the build.
+
+| Check | Scope / remaining work |
+| --- | --- |
+| Both development archives | SHA256, bounded safe contents, source/version metadata and advertised ELF architecture |
+| Extracted amd64 recovery | Real local backup/check/byte comparison with generated data |
+| Extracted redesigned TUI | Three entry points render with empty PATH; blocked manual-job mode and unchanged generated fixtures |
+| Interactive TUI | Separate PTY navigation/cancellation/operator checks; rendering alone is insufficient |
+| Independent onboarding | Trial guide/form ready; participant evidence pending |
+| ARM64 runtime | Unverified; cross-build/structural checks do not establish runtime support |
+| Final candidate | Reviewed notes/changelog, exact tag, repeated tag CI, assets and a separate publication review still required |
+
+Use the matching CI run's `homevault-linux-preview` artifact for development
+inspection. Its archives are not a newly published semantic-version release.

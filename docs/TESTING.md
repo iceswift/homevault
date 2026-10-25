@@ -70,3 +70,17 @@ Independent participant evidence remains pending. CI package/restore checks and
 operator terminal sessions are automated/maintainer rehearsals, not independent
 usability studies. Record the exact version, restore result, help needed and
 retest outcome before claiming successful first-user onboarding.
+
+## Packaged redesigned TUI checks
+
+Current CI and draft-release verification use `verify-release.py --smoke --tui-smoke`.
+After the extracted amd64 binary passes the generated-data backup/check/byte-restore
+walkthrough, its actual `tui-demo`, `tui-status` and `tui-jobs` render commands run
+with an empty PATH. All metadata is generated locally; tool-less manual jobs stay
+blocked. Fixture hashes, mode bits, modification times and tree membership are
+checked for changes, and no repository may be initialized by the views.
+
+This covers packaged entry points and display-only boundaries. It does not replace
+PTY navigation/cancellation checks, a new-user trial, real cloud verification,
+application consistency or ARM64 runtime validation. `--tui-smoke` is opt-in so the
+older published Preview can still be verified with the original `--smoke` command.
