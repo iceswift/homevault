@@ -1,0 +1,26 @@
+HOMEVAULT  /  DESIGN PREVIEW
+Synthetic data only - no real services
+────────────────────────────────────────────────────────────
+[1] Overview    [2] Projects
+
+4 samples: 1 pass / 1 stale / 1 fail / 1 off
+2 samples need attention
+
+PROJECT / SOURCE AGE / UPLOAD AGE
+
+  Shop demo / Passed
+  source 2h | upload 1h
+
+› Notes demo / Stale source
+  source 50h | upload 1h
+
+  Files demo / Check failed
+  source 5h | upload 28h
+
+  Photos demo / Not activated
+  source never | upload never
+
+
+────────────────────────────────────────────────────────────
+Enter details | Tab page | / search | ? help | q quit
+DEMO ONLY | fixed clock: 25 Oct 2026, 06:00 UTC

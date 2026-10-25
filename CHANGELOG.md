@@ -8,6 +8,7 @@ Dates use `YYYY-MM-DD`; release history links point to the exact tag or comparis
 
 ### Added
 
+- Isolated `tui-demo` design prototype with mock Overview/Projects/details, filtering, responsive layouts, ASCII/monochrome support and deterministic frame rendering. It never loads live config or starts backup operations.
 - Contributor guide, security policy, private vulnerability reporting and structured issue/PR templates.
 - Captured synthetic TUI preview with plain-text provenance, a static vector banner and clearer README navigation.
 - FAQ covering backup scope, cloud storage, key custody, database consistency, scheduling and retention.
@@ -23,7 +24,7 @@ Dates use `YYYY-MM-DD`; release history links point to the exact tag or comparis
 ### Upgrade notes
 
 - These changes are on main and subsequent CI artifacts; they are **not** inside `v0.1.0-preview.1`.
-- No CLI/engine, configuration-schema or Go dependency changes have occurred since that preview. No application-data migration is introduced by the changes listed here.
+- A new display-only `tui-demo` command is available on main. The existing live CLI/TUI, engine behavior, configuration schemas and Go dependencies are unchanged; no application-data migration is introduced.
 - These documentation/packaging updates do not enable timers, change repository keys, activate retention or update a running server automatically.
 
 ## [v0.1.0-preview.1] - 2026-10-25

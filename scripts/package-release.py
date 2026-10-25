@@ -11,12 +11,14 @@ import subprocess
 import tarfile
 
 ROOT = Path(__file__).resolve().parents[1]
-DOCS = ['FAQ.md', 'QUICKSTART.md', 'ONBOARDING.md', 'DATABASE-BACKUPS.md', 'FRESH-CAPTURE.md',
+DOCS = ['TUI-PROTOTYPE.md', 'FAQ.md', 'QUICKSTART.md', 'ONBOARDING.md', 'DATABASE-BACKUPS.md', 'FRESH-CAPTURE.md',
         'RECOVERY-REHEARSAL.md', 'POSTGRES-RECOVERY.md', 'SCHEDULING-ALERTS.md',
         'RETENTION.md', 'PRUNE.md', 'DRIVE-OAUTH.md', 'GO-OAUTH-LICENSE.txt',
         'RECOVERY-KIT.md', 'TESTING.md', 'RELEASING.md', 'VM-RECOVERY-DRILL.md',
         'OPERATOR-VALIDATION.md', 'PLANNED-WORKFLOWS.md', 'REBUILD.md', 'ROADMAP.md',
-        'RECOVERY-FILES.md', 'assets/README.md', 'assets/tui-welcome.txt', 'assets/tui-welcome.png', 'assets/homevault-banner.svg']
+        'RECOVERY-FILES.md', 'assets/README.md', 'assets/tui-welcome.txt', 'assets/tui-welcome.png', 'assets/homevault-banner.svg',
+        'assets/tui-prototype-wide.png', 'assets/tui-prototype-wide.txt',
+        'assets/tui-prototype-compact.png', 'assets/tui-prototype-compact.txt']
 
 
 def add(tar, name, data, mode=0o644):

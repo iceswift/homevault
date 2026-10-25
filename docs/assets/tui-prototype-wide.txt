@@ -1,0 +1,32 @@
+HOMEVAULT  /  DESIGN PREVIEW
+Synthetic data only - no real services
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[1] Overview    [2] Projects
+
+SAMPLE HEALTH  1 passed / 1 stale / 1 failed / 1 inactive
+Attention: Notes demo has old source data; Files demo failed its check.
+
+PROJECT                SOURCE AGE  UPLOAD AGE  RESULT                  │ Notes demo
+────────────────────────────────────────────────────────────────────── │ Stale source
+  Shop demo            2h          1h          Passed                  │
+› Notes demo           50h         1h          Stale source            │ Source captured
+  Files demo           5h          28h         Check failed            │ 23 Oct, 04:00 UTC (50h ago)
+  Photos demo          never       never       Not activated           │ Verified upload
+                                                                       │ 25 Oct, 04:05 UTC (1h ago)
+                                                                       │ Latest attempt
+                                                                       │ Backup + check passed
+                                                                       │ Recovery drill
+                                                                       │ Not tested
+                                                                       │ Schedule
+                                                                       │ Not configured
+                                                                       │
+                                                                       │ A recent upload contains old source data.
+                                                                       │ Source age exceeds the sample 36h limit.
+                                                                       │
+                                                                       │ Enter: full details
+                                                                       │
+                                                                       │
+                                                                       │
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Enter details | Tab page | / search | ? help | q quit
+DEMO ONLY | fixed clock: 25 Oct 2026, 06:00 UTC

@@ -1,0 +1,435 @@
+// Package tuidemo contains a synthetic, side-effect-free UI design prototype.
+// The model never loads configuration, calls the engine or starts commands.
+package tuidemo
+
+import (
+	"fmt"
+	"strings"
+	"time"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/x/ansi"
+)
+
+var clock = time.Date(2026, 10, 25, 6, 0, 0, 0, time.UTC)
+
+type project struct {
+	id, name, kind, state, attempt, recovery, schedule, note string
+	captured, uploaded                                       time.Time
+}
+
+func fixtures() []project {
+	return []project{
+		{id: "shop", name: "Shop demo", kind: "SQLite + media", state: "passed", captured: clock.Add(-2 * time.Hour), uploaded: clock.Add(-116 * time.Minute), attempt: "Backup + check passed", recovery: "Sample drill: 24 Oct, 08:00 UTC", schedule: "Not configured", note: "Review a restore separately from backup success."},
+		{id: "notes", name: "Notes demo", kind: "Completed database export", state: "stale", captured: clock.Add(-50 * time.Hour), uploaded: clock.Add(-115 * time.Minute), attempt: "Backup + check passed", recovery: "Not tested", schedule: "Not configured", note: "A recent upload contains old source data. Source age exceeds the sample 36h limit."},
+		{id: "files", name: "Files demo", kind: "Selected directories", state: "failed", captured: clock.Add(-5 * time.Hour), uploaded: clock.Add(-28 * time.Hour), attempt: "Repository check failed", recovery: "Not tested", schedule: "Not configured", note: "The failed attempt does not replace the earlier verified upload."},
+		{id: "photos", name: "Photos demo", kind: "Selected directories", state: "inactive", attempt: "Never run", recovery: "Unknown", schedule: "Not activated", note: "No verified backup is recorded. Inactive is not a successful backup."},
+	}
+}
+
+type Options struct {
+	Width, Height           int
+	ASCII, NoColor, Details bool
+	Page, Project           string
+}
+
+type Model struct {
+	width, height, page, selected, offset    int
+	ascii, noColor, details, searching, help bool
+	query, notice                            string
+	projects                                 []project
+}
+
+func New(options Options) (Model, error) {
+	m := Model{width: options.Width, height: options.Height, ascii: options.ASCII, noColor: options.NoColor, details: options.Details, projects: fixtures()}
+	if m.width == 0 {
+		m.width = 100
+	}
+	if m.height == 0 {
+		m.height = 30
+	}
+	if m.width < 1 || m.height < 1 || m.width > 500 || m.height > 200 {
+		return m, fmt.Errorf("preview dimensions must be 1..500 columns and 1..200 rows")
+	}
+	switch options.Page {
+	case "", "overview":
+	case "projects":
+		m.page = 1
+	default:
+		return m, fmt.Errorf("preview page must be overview or projects")
+	}
+	if options.Project != "" {
+		found := false
+		for i, p := range m.projects {
+			if p.id == options.Project {
+				m.selected = i
+				found = true
+			}
+		}
+		if !found {
+			return m, fmt.Errorf("sample project must be shop, notes, files or photos")
+		}
+	}
+	return m, nil
+}
+
+func (m Model) Init() tea.Cmd { return nil }
+func (m Model) filtered() []project {
+	var result []project
+	for _, p := range m.projects {
+		if strings.Contains(strings.ToLower(p.name+" "+p.kind), strings.ToLower(m.query)) {
+			result = append(result, p)
+		}
+	}
+	return result
+}
+func (m *Model) clamp() {
+	n := len(m.filtered())
+	m.selected = min(max(0, m.selected), max(0, n-1))
+	m.offset = max(0, m.offset)
+	if m.help || m.details && n > 0 {
+		_, _, height := m.layout()
+		var lines []string
+		if m.help {
+			lines = m.helpLines(max(1, m.width))
+		} else {
+			lines = m.detail(m.filtered()[m.selected], max(1, m.width), false)
+		}
+		if len(lines) <= height {
+			m.offset = 0
+		} else {
+			m.offset = min(m.offset, max(0, len(lines)-max(0, height-1)))
+		}
+	} else {
+		m.offset = 0
+	}
+}
+func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := message.(type) {
+	case tea.WindowSizeMsg:
+		m.width = max(1, msg.Width)
+		m.height = max(1, msg.Height)
+		m.offset = 0
+	case tea.KeyMsg:
+		key := msg.String()
+		if key == "ctrl+c" {
+			return m, tea.Quit
+		}
+		if m.searching {
+			switch key {
+			case "esc":
+				m.query = ""
+				m.searching = false
+			case "enter":
+				m.searching = false
+			case "backspace", "ctrl+h":
+				r := []rune(m.query)
+				if len(r) > 0 {
+					m.query = string(r[:len(r)-1])
+				}
+			default:
+				if msg.Type == tea.KeyRunes && len([]rune(m.query))+len(msg.Runes) <= 80 {
+					m.query += string(msg.Runes)
+				}
+			}
+			m.selected = 0
+			m.offset = 0
+			m.clamp()
+			return m, nil
+		}
+		if key == "q" {
+			return m, tea.Quit
+		}
+		if m.help {
+			if key == "esc" || key == "?" {
+				m.help = false
+				m.offset = 0
+			} else if key == "pgdown" || key == "down" {
+				m.offset += max(1, m.height/3)
+			} else if key == "pgup" || key == "up" {
+				m.offset = max(0, m.offset-max(1, m.height/3))
+			}
+			m.clamp()
+			return m, nil
+		}
+		m.notice = ""
+		switch key {
+		case "tab", "shift+tab", "1", "2":
+			if key == "1" {
+				m.page = 0
+			} else if key == "2" {
+				m.page = 1
+			} else {
+				m.page = 1 - m.page
+			}
+			m.details = false
+			m.offset = 0
+		case "up", "k":
+			if m.details {
+				m.offset = max(0, m.offset-1)
+			} else {
+				m.selected--
+			}
+		case "down", "j":
+			if m.details {
+				m.offset++
+			} else {
+				m.selected++
+			}
+		case "pgdown":
+			if m.details {
+				m.offset += max(1, m.height/2)
+			} else {
+				m.selected += max(1, m.height/4)
+			}
+		case "pgup":
+			if m.details {
+				m.offset = max(0, m.offset-max(1, m.height/2))
+			} else {
+				m.selected -= max(1, m.height/4)
+			}
+		case "enter":
+			if len(m.filtered()) > 0 {
+				m.details = true
+				m.offset = 0
+			}
+		case "esc":
+			if m.details {
+				m.details = false
+			} else {
+				m.query = ""
+			}
+			m.offset = 0
+		case "/":
+			m.searching = true
+			m.details = false
+			m.offset = 0
+		case "?":
+			m.help = true
+			m.offset = 0
+		case "b", "c", "r", "d", "a", "s", "p":
+			m.notice = "Prototype only. No job started; no data changed."
+		}
+		m.clamp()
+	}
+	return m, nil
+}
+
+func (m Model) ink(text, code string) string {
+	if m.noColor {
+		return text
+	}
+	return "\x1b[" + code + "m" + text + "\x1b[0m"
+}
+func (m Model) muted(text string) string  { return m.ink(text, "38;5;245") }
+func (m Model) accent(text string) string { return m.ink(text, "38;5;81") }
+func (m Model) line(width int) string {
+	if m.ascii {
+		return strings.Repeat("-", max(0, width))
+	}
+	return strings.Repeat("─", max(0, width))
+}
+func fit(text string, width int) string { return ansi.Truncate(text, max(0, width), "") }
+func pad(text string, width int) string {
+	return fit(text, width) + strings.Repeat(" ", max(0, width-ansi.StringWidth(text)))
+}
+func (m Model) wrap(text string, width int) []string {
+	return strings.Split(ansi.Wrap(text, max(1, width), ""), "\n")
+}
+func age(value time.Time) string {
+	if value.IsZero() {
+		return "never"
+	}
+	minutes := int(clock.Sub(value).Minutes())
+	if minutes < 60 {
+		return fmt.Sprintf("%dm", minutes)
+	}
+	return fmt.Sprintf("%dh", minutes/60)
+}
+func (m Model) state(p project) string {
+	labels := map[string]string{"passed": "Passed", "stale": "Stale source", "failed": "Check failed", "inactive": "Not activated"}
+	colors := map[string]string{"passed": "38;5;114", "stale": "38;5;221", "failed": "38;5;210", "inactive": "38;5;245"}
+	return m.ink(labels[p.state], colors[p.state])
+}
+func (m Model) detail(p project, width int, compact bool) []string {
+	lines := []string{m.accent(p.name), m.state(p), ""}
+	stamp := func(t time.Time) string {
+		if t.IsZero() {
+			return "Never"
+		}
+		return t.Format("02 Jan, 15:04 UTC") + " (" + age(t) + " ago)"
+	}
+	fields := [][2]string{{"Source captured", stamp(p.captured)}, {"Verified upload", stamp(p.uploaded)}, {"Latest attempt", p.attempt}, {"Recovery drill", p.recovery}, {"Schedule", p.schedule}}
+	if !compact {
+		fields = append([][2]string{{"Source type", p.kind}}, fields...)
+	}
+	for _, field := range fields {
+		if compact {
+			lines = append(lines, m.muted(field[0]), field[1])
+		} else {
+			lines = append(lines, m.muted(field[0]), field[1], "")
+		}
+	}
+	lines = append(lines, "", p.note)
+	if compact {
+		lines = append(lines, "", "Enter: full details")
+	}
+	var wrapped []string
+	for _, line := range lines {
+		wrapped = append(wrapped, m.wrap(line, width)...)
+	}
+	return wrapped
+}
+func (m Model) list(width, height int) []string {
+	projects := m.filtered()
+	if len(projects) == 0 {
+		return m.wrap("No matching sample projects. Esc clears the filter; / edits it.", width)
+	}
+	var lines []string
+	rowHeight := 1
+	if m.width < 80 {
+		rowHeight = 3
+		lines = []string{m.muted("PROJECT / SOURCE AGE / UPLOAD AGE"), ""}
+	} else {
+		lines = []string{m.muted(pad("PROJECT", 23) + pad("SOURCE AGE", 12) + pad("UPLOAD AGE", 12) + "RESULT"), m.muted(m.line(width))}
+	}
+	count := max(1, (height-len(lines)-1)/rowHeight)
+	start := min(max(0, m.selected-count+1), max(0, len(projects)-count))
+	end := min(len(projects), start+count)
+	for i := start; i < end; i++ {
+		p := projects[i]
+		cursor := "  "
+		if i == m.selected {
+			cursor = "> "
+			if !m.ascii {
+				cursor = "› "
+			}
+		}
+		name := cursor + p.name
+		if i == m.selected {
+			name = m.accent(name)
+		}
+		if rowHeight == 1 {
+			lines = append(lines, pad(name, 23)+pad(age(p.captured), 12)+pad(age(p.uploaded), 12)+m.state(p))
+		} else {
+			lines = append(lines, name+" / "+m.state(p), m.muted("  source "+age(p.captured)+" | upload "+age(p.uploaded)), "")
+		}
+	}
+	if start > 0 || end < len(projects) {
+		lines = append(lines, m.muted(fmt.Sprintf("Projects %d-%d of %d; arrows to scroll", start+1, end, len(projects))))
+	}
+	return lines
+}
+func window(lines []string, offset, height int) []string {
+	if height <= 0 {
+		return nil
+	}
+	if len(lines) <= height {
+		return lines
+	}
+	content := max(0, height-1)
+	start := min(max(0, offset), max(0, len(lines)-content))
+	result := append([]string{}, lines[start:min(len(lines), start+content)]...)
+	return append(result, fmt.Sprintf("Lines %d-%d/%d | PgUp/PgDn", start+1, min(len(lines), start+content), len(lines)))
+}
+func (m Model) helpLines(width int) []string {
+	return m.wrap("DESIGN PREVIEW HELP\n\nThis command has no engine or live configuration.\nAll projects, ages, results and recovery evidence are synthetic.\n\nTab / 1 / 2: choose Overview or Projects\nUp/Down or j/k: select a sample\nEnter: open full project details\n/: filter projects by name or type\nEsc: return, or clear the filter\nPgUp/PgDn: scroll details or a long list\n?: show this help\nq / Ctrl+C: quit (q can be typed while searching)\n\nBackup, restore, checks and settings are unavailable here.\nUse tui for the existing live interface, not this prototype.\nNo background jobs, timers, file writes or network calls are made.", width)
+}
+
+func (m Model) layout() (head, footer []string, available int) {
+	width, height := max(1, m.width), max(1, m.height)
+	head = []string{m.accent("HOMEVAULT") + m.muted("  /  DESIGN PREVIEW"), m.muted("Synthetic data only - no real services"), m.line(width)}
+	tabs := []string{"[1] Overview", "[2] Projects"}
+	tabs[m.page] = m.accent(tabs[m.page])
+	head = append(head, strings.Join(tabs, "    "), "")
+	if m.searching {
+		head = append(head, m.wrap("Filter: "+m.query+"_  (Enter apply / Esc clear)", width)...)
+	} else if m.query != "" {
+		head = append(head, m.wrap("Filter: "+m.query, width)...)
+	}
+	if m.page == 0 && !m.details && !m.help {
+		if width < 80 {
+			head = append(head, m.wrap("4 samples: 1 pass / 1 stale / 1 fail / 1 off", width)...)
+			head = append(head, "2 samples need attention")
+		} else {
+			head = append(head, m.wrap("SAMPLE HEALTH  1 passed / 1 stale / 1 failed / 1 inactive", width)...)
+			head = append(head, m.wrap("Attention: Notes demo has old source data; Files demo failed its check.", width)...)
+		}
+	}
+	if m.notice != "" {
+		head = append(head, m.wrap(m.notice, width)...)
+	}
+	head = append(head, "")
+	hint := "Enter details | Tab page | / search | ? help | q quit"
+	if m.details {
+		hint = "Esc back | Up/Down or PgUp/PgDn scroll | q quit"
+	}
+	if m.searching {
+		hint = "Type to filter | Enter apply | Esc clear | Ctrl+C quit"
+	}
+	if m.help {
+		hint = "Esc back | PgUp/PgDn scroll | q quit"
+	}
+	footer = append([]string{m.muted(m.line(width))}, m.wrap(hint, width)...)
+	footer = append(footer, m.muted("DEMO ONLY | fixed clock: 25 Oct 2026, 06:00 UTC"))
+	available = max(1, height-len(head)-len(footer))
+	return head, footer, available
+}
+
+func (m Model) View() string {
+	width, height := max(1, m.width), max(1, m.height)
+	if width < 40 || height < 18 {
+		lines := []string{"HOMEVAULT DEMO", "Resize to at least 40x18", "q / Ctrl+C: quit"}
+		if len(lines) > height {
+			lines = lines[:height]
+		}
+		for i, line := range lines {
+			lines[i] = fit(line, width)
+		}
+		return strings.Join(lines, "\n")
+	}
+	head, footer, available := m.layout()
+	projects := m.filtered()
+	var body []string
+	switch {
+	case m.help:
+		body = window(m.helpLines(width), m.offset, available)
+	case m.details && len(projects) > 0:
+		body = window(m.detail(projects[m.selected], width, false), m.offset, available)
+	case width >= 110 && len(projects) > 0:
+		left := (width - 3) * 3 / 5
+		right := width - left - 3
+		a, b := m.list(left, available), m.detail(projects[m.selected], right, true)
+		separator := " | "
+		if !m.ascii {
+			separator = " │ "
+		}
+		for i := 0; i < available; i++ {
+			x, y := "", ""
+			if i < len(a) {
+				x = a[i]
+			}
+			if i < len(b) {
+				y = b[i]
+			}
+			body = append(body, pad(x, left)+m.muted(separator)+fit(y, right))
+		}
+	default:
+		body = m.list(width, available)
+	}
+	lines := append(head, body...)
+	for len(lines) < height-len(footer) {
+		lines = append(lines, "")
+	}
+	if len(lines) > height-len(footer) {
+		lines = lines[:max(0, height-len(footer))]
+	}
+	lines = append(lines, footer...)
+	if len(lines) > height {
+		lines = lines[:height]
+	}
+	for i, line := range lines {
+		lines[i] = fit(line, width)
+	}
+	return strings.Join(lines, "\n")
+}

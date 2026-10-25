@@ -79,6 +79,18 @@ expected results, byte-verified restore and troubleshooting.
 
 </details>
 
+<details>
+<summary><strong>Try the next TUI design (mock data only)</strong></summary>
+
+After building current main from source, run `./bin/homevault tui-demo`.
+Browse sample Overview/Projects screens, filter and open details without loading
+live config or running backup tools. This is not included in the published Preview.
+
+See the [prototype guide](docs/TUI-PROTOTYPE.md) for keyboard controls, narrow-screen
+layouts, ASCII/monochrome modes and the fixed sample states.
+
+</details>
+
 ## Capabilities
 
 | Available | Experimental | Outside current scope |
