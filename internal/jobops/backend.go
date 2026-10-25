@@ -113,10 +113,11 @@ func (b *Backend) Load() (statusdata.Snapshot, error) {
 	}
 	data := statusdata.Snapshot{ReadAt: time.Now().UTC(), Notifications: "Existing config policy; only after confirmed jobs"}
 	for _, p := range b.cfg.Projects {
-		row := statusdata.Project{ID: p.Name, Name: p.Name, ProjectName: p.Name, Kind: "Native file job", State: "unverified", Recovery: "Unknown - not inspected", Schedule: "Unknown - not inspected", Activation: "Manual only; not a workflow/timer gate", RecordScope: "Native engine job record", Attempt: "No local job record", Note: "Source age is unknown. This manual command does not read coordinator activation flags. No schedule is enabled."}
+		row := statusdata.Project{ID: p.Name, Name: p.Name, ProjectName: p.Name, Kind: "Native file job", State: "unverified", BackupCheck: "no-record", Recovery: "Unknown - not inspected", Schedule: "Unknown - not inspected", Activation: "Manual only; not a workflow/timer gate", RecordScope: "Native engine job record", Attempt: "No local job record", Note: "Source age is unknown. This manual command does not read coordinator activation flags. This view does not inspect or enable schedules."}
 		state, err := b.engine.JobStatus(p.Name)
 		if err != nil {
 			row.State = "unknown"
+			row.BackupCheck = "unknown"
 			row.Note = "Local job record unreadable; no backup absence is inferred."
 		} else {
 			row.Uploaded = state.LastSuccess
@@ -135,11 +136,17 @@ func (b *Backend) Load() (statusdata.Snapshot, error) {
 			}
 			switch state.Latest.Status {
 			case "success":
+				row.BackupCheck = "passed"
 				row.Attempt = "Recorded backup + check passed"
 			case "failed":
+				row.BackupCheck = "failed"
+				if state.Latest.Phase == "cancelled" {
+					row.BackupCheck = "cancelled"
+				}
 				row.State = "failed"
 				row.Attempt = "Recorded attempt failed"
 			case "running":
+				row.BackupCheck = "running"
 				row.State = "running"
 				row.Attempt = "Running record; process not inspected"
 			}

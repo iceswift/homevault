@@ -19,6 +19,7 @@ func runTUIJobs(ctx context.Context, configuration string, timeout time.Duration
 	height := fs.Int("height", 30, "initial/render rows")
 	ascii := fs.Bool("ascii", false, "ASCII separators")
 	noColor := fs.Bool("no-color", false, "monochrome")
+	displayContext := fs.String("context", "unknown", "operator label: lab, production or unknown; not a safety boundary")
 	zone := fs.String("timezone", "Local", "display timezone")
 	if err := fs.Parse(args); err != nil {
 		if err == flag.ErrHelp {
@@ -42,7 +43,7 @@ func runTUIJobs(ctx context.Context, configuration string, timeout time.Duration
 	if err != nil {
 		return err
 	}
-	model, err := tui.NewManualJobs(tui.Options{Width: *width, Height: *height, ASCII: *ascii || os.Getenv("TERM") == "dumb", NoColor: *noColor || *render || os.Getenv("NO_COLOR") != "" || os.Getenv("TERM") == "dumb", Location: location}, data, backend.Load, backend)
+	model, err := tui.NewManualJobs(tui.Options{Context: *displayContext, Width: *width, Height: *height, ASCII: *ascii || os.Getenv("TERM") == "dumb", NoColor: *noColor || *render || os.Getenv("NO_COLOR") != "" || os.Getenv("TERM") == "dumb", Location: location}, data, backend.Load, backend)
 	if err != nil {
 		return err
 	}

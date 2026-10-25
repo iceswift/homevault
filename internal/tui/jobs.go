@@ -204,7 +204,7 @@ func (m Model) jobsPanel(width int) []string {
 		}
 		return m.wrap(text, width)
 	}
-	return m.wrap("MANUAL FILE JOB\n\nProject: "+m.jobID+"\nPhase: "+m.jobPhase+"\nResult: "+m.jobState+"\n\n"+m.jobMessage+"\n\nProgress comes from engine records; no percentage is invented.\nBackup/check success does not prove application recovery.\n\n"+func() string {
+	return m.wrap("MANUAL FILE JOB\n\nProject: "+m.jobID+"\nPhase: "+m.jobPhase+"\nResult: "+m.jobState+"\n\n"+m.jobMessage+"\n\nProgress comes from engine records; no percentage is invented.\nSource freshness: Unknown | Application recovery: Not inspected\nBackup/check success does not prove application recovery.\n\n"+func() string {
 		if m.jobActive {
 			return "x: cancel and stay | q/Ctrl+C: cancel, wait, quit"
 		}
@@ -213,7 +213,7 @@ func (m Model) jobsPanel(width int) []string {
 }
 func fmtCount(n int) string { return fmt.Sprint(n) }
 func (m Model) jobsHelp(width int) []string {
-	return m.wrap("MANUAL FILE JOBS\n\nh: browse local attempt history (no cloud lookup)\nb: review selected project; type its exact ID then Enter to start\nEsc: cancel review (no job)\nx: request cancellation while running\nq/Ctrl+C during a job: cancel and wait for cleanup before quitting\n\nOnly file-only projects are supported. Capture-required, database and recovery-only configurations are blocked.\nThis command invokes manual native jobs, not coordinator workflows: their enabled flags/windows are not loaded.\nExisting engine operation/credential locks, config validation and process cancellation are used.\nNo repository initialization, app pause, restore, deletion, unlock or timer action exists here.\nConfigured notifications may follow a confirmed job.\n\nSources must exclude live databases. A successful job is backup/check evidence only.\nr manually refreshes local job records; source freshness/recovery remain unknown.\nHard process kills/power loss can require independent lock/recovery investigation; no automatic stale unlock is performed.", width)
+	return m.wrap("MANUAL FILE JOBS\n\nBackup/check results, source freshness and application recovery are separate.\nContext is an operator label only; it does not validate sources or change job guards.\n\nh: browse local attempt history (no cloud lookup)\nb: review selected project; type its exact ID then Enter to start\nEsc: cancel review (no job)\nx: request cancellation while running\nq/Ctrl+C during a job: cancel and wait for cleanup before quitting\n\nOnly file-only projects are supported. Capture-required, database and recovery-only configurations are blocked.\nThis command invokes manual native jobs, not coordinator workflows: their enabled flags/windows are not loaded.\nExisting engine operation/credential locks, config validation and process cancellation are used.\nNo repository initialization, app pause, restore, deletion, unlock or timer action exists here.\nConfigured notifications may follow a confirmed job.\n\nSources must exclude live databases. A successful job is backup/check evidence only.\nr manually refreshes local job records; source freshness/recovery remain unknown.\nHard process kills/power loss can require independent lock/recovery investigation; no automatic stale unlock is performed.", width)
 }
 
 func (m *Model) clampJobOffset() {

@@ -8,6 +8,7 @@ type Project struct {
 	Attempt, Recovery, Schedule, Note    string
 	Activation, RecordScope, ProjectName string
 	Captured, Uploaded                   time.Time
+	BackupCheck                          string
 	HistoryKnown                         bool
 	History                              []JobRecord
 }

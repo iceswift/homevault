@@ -19,6 +19,7 @@ type project struct {
 	id, name, kind, state, attempt, recovery, schedule, note string
 	activation, scope, projectName                           string
 	captured, uploaded                                       time.Time
+	backupCheck                                              string
 	historyKnown                                             bool
 	history                                                  []statusdata.JobRecord
 }
@@ -36,6 +37,7 @@ type Options struct {
 	Width, Height           int
 	ASCII, NoColor, Details bool
 	Page, Project           string
+	Context                 string
 	Location                *time.Location
 }
 
@@ -58,10 +60,21 @@ type Model struct {
 	jobID, jobPhase, jobState, jobMessage    string
 	events                                   jobEvents
 	historyProject                           string
+	contextLabel                             string
 }
 
 func newLayout(options Options) (Model, error) {
 	m := Model{width: options.Width, height: options.Height, ascii: options.ASCII, noColor: options.NoColor, details: options.Details, now: clock, location: options.Location}
+	switch options.Context {
+	case "", "unknown":
+		m.contextLabel = "CONTEXT UNKNOWN"
+	case "lab":
+		m.contextLabel = "LAB (operator label)"
+	case "production":
+		m.contextLabel = "PRODUCTION (operator label)"
+	default:
+		return m, fmt.Errorf("context must be lab, production or unknown")
+	}
 	if m.width == 0 {
 		m.width = 100
 	}
@@ -369,6 +382,9 @@ func (m Model) age(value time.Time) string {
 	return fmt.Sprintf("%dh", minutes/60)
 }
 func (m Model) state(p project) string {
+	if m.jobs != nil {
+		return m.backupLabel(p)
+	}
 	labels := map[string]string{"passed": "Passed", "stale": "Stale source", "failed": "Check failed", "inactive": "Not activated"}
 	colors := map[string]string{"passed": "38;5;114", "stale": "38;5;221", "failed": "38;5;210", "inactive": "38;5;245"}
 	labels["blocked"] = "Blocked"
@@ -386,6 +402,9 @@ func (m Model) state(p project) string {
 	return m.ink(labels[p.state], colors[p.state])
 }
 func (m Model) detail(p project, width int, compact bool) []string {
+	if m.jobs != nil {
+		return m.jobDetail(p, width, compact)
+	}
 	lines := []string{m.accent(p.name), m.state(p), ""}
 	stamp := func(t time.Time) string {
 		if t.IsZero() {
@@ -425,6 +444,9 @@ func (m Model) detail(p project, width int, compact bool) []string {
 	return wrapped
 }
 func (m Model) list(width, height int) []string {
+	if m.jobs != nil {
+		return m.jobList(width, height)
+	}
 	projects := m.filtered()
 	if len(projects) == 0 {
 		if m.live {
@@ -496,7 +518,7 @@ func (m Model) layout() (head, footer []string, available int) {
 		head = []string{m.accent("HOMEVAULT") + m.muted("  /  LOCAL RECORDS - READ ONLY"), m.muted("Ages at last read; no live checks"), m.line(width)}
 	}
 	if m.jobs != nil {
-		head = []string{m.accent("HOMEVAULT") + m.muted(" / MANUAL FILE JOBS"), m.muted("b reviews a job; typed confirmation required"), m.line(width)}
+		head = []string{m.accent("HOMEVAULT") + m.muted(" / MANUAL FILE JOBS"), m.muted(m.contextLabel + " | b reviews; typed confirmation required"), m.line(width)}
 	}
 	tabs := []string{"[1] Overview", "[2] Projects"}
 	tabs[m.page] = m.accent(tabs[m.page])
@@ -589,7 +611,7 @@ func (m Model) View() string {
 			title = "HOMEVAULT READ ONLY"
 		}
 		if m.jobs != nil {
-			title = "MANUAL FILE JOBS"
+			title = "MANUAL FILE JOBS / " + m.contextLabel
 		}
 		lines := []string{title, "Resize to at least 40x18", "q / Ctrl+C: quit"}
 		if m.jobActive {

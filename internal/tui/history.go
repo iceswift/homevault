@@ -64,7 +64,7 @@ func (m Model) historyLines(width int) []string {
 		return m.wrap(text+"Project no longer exists in the loaded configuration. Esc returns.", width)
 	}
 	p := selected
-	text += "Native engine records only; up to 32 completed attempts plus a running record.\nNo cloud snapshot lookup. Backup/check does not prove application recovery.\n"
+	text += "Native engine records only; up to 32 completed attempts plus a running record.\nSource freshness: Unknown | Application recovery: Not inspected\nNo cloud snapshot lookup. Backup/check does not prove application recovery.\n"
 	if m.loading || m.readFailed {
 		return m.wrap(text+"\nHistory unavailable while local records are refreshing or cached after a failed read.\nPress r to retry; no current success is inferred.", width)
 	}

@@ -3,7 +3,7 @@
 Available on main; not included in `v0.1.0-preview.1`.
 
 ```sh
-homevault --config /absolute/reviewed-files.json tui-jobs
+homevault --config /absolute/reviewed-files.json tui-jobs --context production
 ```
 
 This separate mode invokes native manual file jobs. It does not load coordinator
@@ -75,3 +75,29 @@ than presented as current evidence. The selected history stays bound to its proj
 ID across refreshed list reordering. Navigation, scrolling and refresh create no
 history files and send no notifications. `tui-status` and `tui-demo` remain separate
 and do not expose this manual-job history panel.
+
+## Separate evidence and deployment labels
+
+The manual view no longer presents one overall `Unverified` result beside a passed
+backup/check. Its list, overview and details separate:
+
+| Dimension | Meaning in this mode |
+| --- | --- |
+| Backup/check | Latest local attempt: recorded passed, failed, cancelled, running record, no local record or unknown |
+| Source freshness | Unknown; no source-age evaluation is performed |
+| Application recovery | Not inspected; a backup/check record is not recovery proof |
+
+The last recorded backup/check success is a separate timestamp, preserved when a
+later attempt fails. It replaces the ambiguous upload-age column in this mode:
+local metadata is not proof that Google Drive is reachable now. Blocked manual
+actions are shown separately; they do not erase earlier backup evidence. Failed
+refreshes downgrade displayed backup evidence to Unknown and suppress stale success
+timestamps until a successful read. Coordinator `tui-status` keeps its own record
+scope and freshness semantics.
+
+Use `--context lab` for generated data or `--context production` for an operator-
+reviewed real-data configuration. The persistent header says `(operator label)`.
+The default is `CONTEXT UNKNOWN`: HomeVault never guesses from names or paths.
+These labels do not validate a configuration, prevent writes or change any job
+guard, confirmation, notification or destination. Review the exact configuration
+and repository before starting a job, even when the header says LAB.

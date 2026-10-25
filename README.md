@@ -108,7 +108,9 @@ do not mean cloud backups are absent. This mode is not in the published Preview.
 
 Use `homevault --config /absolute/reviewed-files.json tui-jobs` for file-only
 backup/check jobs with typed confirmation, recorded phases and cancellation.
-Press `h` to browse local attempt history and separate backup/check results.
+Backup/check, source freshness and recovery evidence are displayed separately.
+Use `--context lab` or `--context production` for an explicit operator label;
+otherwise context is Unknown. Press `h` to browse local attempt history.
 This manual mode does not consume coordinator enabled flags/windows. Database and
 capture projects remain blocked. See [scope and controls](docs/TUI-JOBS.md) before
 using it. Not included in the published Preview.

@@ -83,7 +83,7 @@ func (m *Model) applyData(data statusdata.Snapshot) error {
 			history[i].Status = cleanDisplay(history[i].Status)
 			history[i].Phase = cleanDisplay(history[i].Phase)
 		}
-		projects = append(projects, project{historyKnown: row.HistoryKnown, history: history, id: row.ID, name: cleanDisplay(row.Name), kind: cleanDisplay(row.Kind), state: state, attempt: cleanDisplay(row.Attempt), recovery: cleanDisplay(row.Recovery), schedule: cleanDisplay(row.Schedule), note: cleanDisplay(row.Note), activation: cleanDisplay(row.Activation), scope: cleanDisplay(row.RecordScope), projectName: cleanDisplay(row.ProjectName), captured: row.Captured, uploaded: row.Uploaded})
+		projects = append(projects, project{backupCheck: row.BackupCheck, historyKnown: row.HistoryKnown, history: history, id: row.ID, name: cleanDisplay(row.Name), kind: cleanDisplay(row.Kind), state: state, attempt: cleanDisplay(row.Attempt), recovery: cleanDisplay(row.Recovery), schedule: cleanDisplay(row.Schedule), note: cleanDisplay(row.Note), activation: cleanDisplay(row.Activation), scope: cleanDisplay(row.RecordScope), projectName: cleanDisplay(row.ProjectName), captured: row.Captured, uploaded: row.Uploaded})
 	}
 	m.projects = projects
 	m.now = data.ReadAt
@@ -97,6 +97,9 @@ func (m *Model) applyData(data statusdata.Snapshot) error {
 	return nil
 }
 func (m Model) summary() string {
+	if m.jobs != nil {
+		return m.jobSummary()
+	}
 	counts := map[string]int{}
 	for _, p := range m.projects {
 		state := p.state
@@ -110,9 +113,6 @@ func (m Model) summary() string {
 		if counts[state] > 0 {
 			values = append(values, fmt.Sprintf("%d %s", counts[state], state))
 		}
-	}
-	if m.jobs != nil {
-		return fmt.Sprintf("LOCAL JOB RECORDS %d projects | %s", len(m.projects), strings.Join(values, " / "))
 	}
 	return fmt.Sprintf("LOCAL RECORDS  %d workflows | %s", len(m.projects), strings.Join(values, " / "))
 }

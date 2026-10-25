@@ -173,6 +173,9 @@ func TestLoadHistoryIsNewestFirstDeduplicatedAndReadOnly(t *testing.T) {
 		t.Fatal(err)
 	}
 	p := data.Projects[0]
+	if p.BackupCheck != "failed" {
+		t.Fatal("latest failed attempt must not inherit prior success")
+	}
 	if !p.HistoryKnown || len(p.History) != 2 || p.History[0].ID != failed.ID || p.History[1].ID != old.ID || !p.Uploaded.Equal(old.Finished) {
 		t.Fatal("history ordering, deduplication or prior success lost")
 	}
@@ -186,5 +189,19 @@ func TestLoadHistoryIsNewestFirstDeduplicatedAndReadOnly(t *testing.T) {
 	}
 	if _, err := os.Stat(b.cfg.StateDir); !os.IsNotExist(err) || f.calls != 0 {
 		t.Fatal("history read created state or ran job")
+	}
+}
+
+func TestBackupCheckEvidenceDoesNotInferFreshnessOrRecovery(t *testing.T) {
+	b, f := backendFixture(t)
+	f.state.Latest = engine.JobAttempt{ID: strings.Repeat("a", 24), Status: "success", BackupPassed: true, CheckPassed: true}
+	b.cfg.Projects[0].CaptureRequired = true
+	data, err := b.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := data.Projects[0]
+	if p.BackupCheck != "passed" || p.State != "blocked" || !p.Captured.IsZero() || !strings.Contains(p.Recovery, "not inspected") {
+		t.Fatal("action scope, source freshness and backup evidence conflated")
 	}
 }

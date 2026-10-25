@@ -19,6 +19,7 @@ Dates use `YYYY-MM-DD`; release history links point to the exact tag or comparis
 
 ### Changed
 
+- Manual-job TUI separates backup/check evidence, unknown source freshness and uninspected application recovery; action blocks do not erase backup results. Explicit `--context lab|production|unknown` labels replace guessing deployment scope from project names.
 - README prioritizes the downloadable preview and verified demo; advanced feature details can be expanded separately.
 - Roadmap distinguishes delivered features, current verification work and future milestones.
 - GitHub About/links/topics describe the project and direct new users to the public Quick Start.
