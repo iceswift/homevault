@@ -39,7 +39,7 @@ run in Linux CI with real Restic. Either paste the block **or** run
 set -euo pipefail
 umask 077
 
-HV="$(pwd)/bin/homevault"
+HV="${HOMEVAULT_QUICKSTART_BINARY:-$(pwd)/bin/homevault}"
 test -x "$HV"
 command -v restic >/dev/null
 command -v python3 >/dev/null

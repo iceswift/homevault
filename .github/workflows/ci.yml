@@ -30,6 +30,7 @@ jobs:
           go test -race ./...
           go vet ./...
           python3 scripts/verify-systemd.py
+          python3 scripts/test_verify_release.py
       - name: Real encrypted local fixtures
         run: |
           python3 scripts/fetch-test-restic.py "$RUNNER_TEMP/homevault-tools"
@@ -41,7 +42,9 @@ jobs:
           go build -trimpath -o bin/homevault ./cmd/homevault
           PATH="$RUNNER_TEMP/homevault-tools:$PATH" bash scripts/quickstart-smoke.sh
       - name: Build Linux packages and checksums
-        run: python3 scripts/package-release.py --version "dev-${GITHUB_SHA:0:12}" --output "$RUNNER_TEMP/homevault-dist"
+        run: |
+          python3 scripts/package-release.py --version "dev-${GITHUB_SHA:0:12}" --output "$RUNNER_TEMP/homevault-dist"
+          PATH="$RUNNER_TEMP/homevault-tools:$PATH" python3 scripts/verify-release.py "$RUNNER_TEMP/homevault-dist" --version "dev-${GITHUB_SHA:0:12}" --commit "$GITHUB_SHA" --smoke
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: homevault-linux-preview

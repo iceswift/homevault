@@ -3,6 +3,7 @@ import argparse
 import gzip
 import hashlib
 import io
+import json
 import os
 from pathlib import Path
 import re
@@ -33,10 +34,18 @@ def main():
         raise SystemExit('version must be a semantic v-tag or dev-commithex')
     if not args.output.is_absolute():
         raise SystemExit('output must be a new absolute directory')
+    commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+    dirty = subprocess.run(['git', 'diff', '--quiet', 'HEAD', '--'], cwd=ROOT).returncode != 0
+    if args.version.startswith('v'):
+        tagged = subprocess.check_output(['git', 'rev-list', '-n', '1', args.version], cwd=ROOT, text=True).strip()
+        if dirty or tagged != commit:
+            raise SystemExit('tagged packages require clean tracked source at the exact tag commit')
+    go_version = subprocess.check_output(['go', 'version'], text=True).strip()
     # Explicit allowlist: never archive working directories, credentials or data.
     files = {'LICENSE': (ROOT / 'LICENSE').read_bytes(), 'README.md': (ROOT / 'README.md').read_bytes()}
     for doc in DOCS:
         files['docs/' + doc] = (ROOT / 'docs' / doc).read_bytes()
+    files['scripts/quickstart-smoke.sh'] = (ROOT / 'scripts/quickstart-smoke.sh').read_bytes()
     args.output.mkdir(mode=0o700)
     checksums = []
     for arch in ['amd64', 'arm64']:
@@ -51,6 +60,18 @@ def main():
             with gzip.GzipFile(filename='', mode='wb', fileobj=out, mtime=0) as zipped:
                 with tarfile.open(fileobj=zipped, mode='w') as tar:
                     add(tar, name + '/homevault', binary.read_bytes(), 0o755)
+                    metadata = {
+                        'schema': 1, 'version': args.version, 'source_commit': commit,
+                        'tracked_source_dirty': dirty, 'go_toolchain': go_version,
+                        'os': 'linux', 'arch': arch, 'cgo_enabled': False,
+                        'external_tools': {
+                            'restic': '0.19.1 tested in generated-data CI',
+                            'rclone': '1.75.2 operator-tested; optional for cloud',
+                            'python': '3.11+ for optional workflows and this demo',
+                            'age': '1.3.2 tested; optional for recovery kits'},
+                        'runtime_validation_target': 'Linux amd64 generated-data local restore; inspect matching CI run' if arch == 'amd64' else 'cross-build only; runtime unverified'
+                    }
+                    add(tar, name + '/RELEASE.json', (json.dumps(metadata, indent=2) + '\n').encode())
                     for file, data in sorted(files.items()):
                         add(tar, name + '/' + file, data)
         binary.unlink()

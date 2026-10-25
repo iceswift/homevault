@@ -57,9 +57,9 @@ data, back it up, restore it into a separate directory and compare the bytes.
 The guide includes expected results and troubleshooting. Do this before adding
 real data or setting up Google Drive.
 
-Building from source is the documented starting path. Linux preview packaging and
-checksum verification are described in [releasing](docs/RELEASING.md); this README
-does not assume a published stable release exists.
+Prefer a prebuilt executable? See [preview installation and checksum verification](docs/RELEASING.md).
+The first candidate is `v0.1.0-preview.1`; draft assets become publicly downloadable
+only after publication. Building from source works without waiting for a release.
 
 ## Choose the right scope
 
