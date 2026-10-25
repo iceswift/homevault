@@ -4,7 +4,9 @@ HomeVault is early development software. The first public preview is
 [v0.1.0-preview.1](https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.1).
 Its public archives and checksums were downloaded without GitHub authentication
 and verified after publication. This is a prerelease, not a stable release.
-Future candidates remain drafts until a separate maintainer publication step.
+The next candidate is `v0.1.0-preview.2`; its [review notes](https://github.com/iceswift/homevault/blob/main/docs/releases/v0.1.0-preview.2.md)
+are separate from Preview 1. Candidates remain drafts until a separate maintainer
+publication step; a draft does not replace the published download below.
 
 ## Install a published preview without Go
 

@@ -6,6 +6,12 @@ Dates use `YYYY-MM-DD`; release history links point to the exact tag or comparis
 
 ## [Unreleased]
 
+No changes recorded after the Preview 2 candidate.
+
+## [v0.1.0-preview.2] - 2026-10-25
+
+Candidate prepared for draft review; publication is a separate step.
+
 ### Added
 
 - Optional extracted-package `--tui-smoke` checks redesigned UI rendering without external tools and verifies generated fixtures remain unchanged; main CI and future draft-release builds run it alongside byte-verified local restore. Older published archives remain verifiable without this flag.
@@ -27,12 +33,12 @@ Dates use `YYYY-MM-DD`; release history links point to the exact tag or comparis
 - README prioritizes the downloadable preview and verified demo; advanced feature details can be expanded separately.
 - Roadmap distinguishes delivered features, current verification work and future milestones.
 - GitHub About/links/topics describe the project and direct new users to the public Quick Start.
-- Future packages include contribution/security guidance, FAQ, changelog and reviewed preview assets. Existing published assets are unchanged.
+- Candidate packages include contribution/security guidance, FAQ, changelog and reviewed preview assets. Existing published assets are unchanged.
 
 ### Upgrade notes
 
-- These changes are on main and subsequent CI artifacts; they are **not** inside `v0.1.0-preview.1`.
-- New display-only `tui-demo` and read-only `tui-status` commands are available on main. The existing live CLI/TUI entry points, configuration schemas and Go dependencies are unchanged; a separate guarded engine entry point supports reviewed file jobs; no application-data migration is introduced.
+- These changes belong to the Preview 2 candidate and subsequent CI artifacts; they are **not** inside `v0.1.0-preview.1`.
+- New display-only `tui-demo`, read-only `tui-status` and reviewed manual `tui-jobs` commands are included in this candidate. The existing live CLI/TUI entry points, configuration schemas and Go dependencies are unchanged; a separate guarded engine entry point supports reviewed file jobs; no application-data migration is introduced.
 - These documentation/packaging updates do not enable timers, change repository keys, activate retention or update a running server automatically.
 
 ## [v0.1.0-preview.1] - 2026-10-25
@@ -61,5 +67,6 @@ First public experimental Linux preview, built from commit
 - When adopting an existing repository, preserve its original key/configuration and validate recovery. Do not initialize over existing backup data or replace its key to follow a demo.
 - Downloading or opening the preview does not install systemd services, activate schedules or delete backups. Keep independently recoverable key custody and test a restore before real use.
 
-[Unreleased]: https://github.com/iceswift/homevault/compare/v0.1.0-preview.1...main
+[Unreleased]: https://github.com/iceswift/homevault/compare/v0.1.0-preview.2...main
+[v0.1.0-preview.2]: https://github.com/iceswift/homevault/compare/v0.1.0-preview.1...v0.1.0-preview.2
 [v0.1.0-preview.1]: https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.1
