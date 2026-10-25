@@ -1,9 +1,10 @@
 # Linux preview packages and verification
 
-HomeVault is early development software. The first candidate is
-`v0.1.0-preview.1`. A **draft** release is visible only to repository collaborators;
-public download links become usable only after a maintainer publishes it.
-Do not interpret the existence of these instructions as a stable release claim.
+HomeVault is early development software. The first public preview is
+[v0.1.0-preview.1](https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.1).
+Its public archives and checksums were downloaded without GitHub authentication
+and verified after publication. This is a prerelease, not a stable release.
+Future candidates remain drafts until a separate maintainer publication step.
 
 ## Install a published preview without Go
 
@@ -13,7 +14,7 @@ are not supplied. You need Restic separately; cloud storage additionally needs
 rclone. See the official [Restic installation guide](https://restic.readthedocs.io/en/stable/020_installation.html).
 Python 3.11+ and Bash are used by the bundled sample walkthrough.
 
-After the candidate is published, run in Bash (requires curl, tar and sha256sum):
+To download this published preview, run in Bash (requires curl, tar and sha256sum):
 
 ```sh
 set -euo pipefail

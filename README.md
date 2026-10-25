@@ -58,8 +58,8 @@ The guide includes expected results and troubleshooting. Do this before adding
 real data or setting up Google Drive.
 
 Prefer a prebuilt executable? See [preview installation and checksum verification](docs/RELEASING.md).
-The first candidate is `v0.1.0-preview.1`; draft assets become publicly downloadable
-only after publication. Building from source works without waiting for a release.
+The first public preview is [v0.1.0-preview.1](https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.1),
+with Linux archives and checksums. It is a prerelease, not a stable release.
 
 ## Choose the right scope
 
