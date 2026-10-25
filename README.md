@@ -8,7 +8,8 @@ A small, open-source Go CLI/TUI that orchestrates encrypted Restic backups. No p
 - Local repositories or an already-configured rclone remote (Google Drive transport).
 - One operation per state directory, context timeout/cancellation and argument-array subprocess execution.
 - Restore requires an explicit full snapshot ID and a new/empty destination; configured source, state, secret and repository paths are protected.
-- Keyboard TUI: arrows select project; `b` backup+check job, `s` snapshots, `c` repository check, `q` quit. Quitting cancels interactive work; scheduled CLI work runs independently via systemd.
+- Keyboard TUI: arrows select project; `b` opens backup+check confirmation (Enter starts; any other key cancels), `s` snapshots, `c` repository check, `?` help, `q` quit. Quitting cancels interactive work; scheduled CLI work runs independently via systemd.
+- First-run guidance and width-aware detail scrolling support smaller terminals. The TUI does not infer that timers or workflow schedules are active; verify those separately with systemd.
 - TUI job history (`h`), read-only retention preview (`p`), recovery guide (`g`) and Page Up/Down scrolling. `b` runs a recorded backup+metadata-check job; capture-required projects use the separate reviewed CLI workflow.
 
 New users: follow [onboarding and new-machine recovery](docs/ONBOARDING.md). `setup` generates a private starter config/checklist using an existing repository key; it never initializes, uploads or enables services. Linux preview packages and draft-release workflow are described in [releasing](docs/RELEASING.md).

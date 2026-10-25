@@ -344,17 +344,19 @@ type resultMsg struct {
 	err  error
 }
 type model struct {
-	cfg      config.Config
-	e        *engine.Engine
-	ctx      context.Context
-	selected int
-	busy     bool
-	status   string
-	quitting bool
-	cancel   context.CancelFunc
-	workers  *operationGroup
-	height   int
-	offset   int
+	cfg           config.Config
+	e             *engine.Engine
+	ctx           context.Context
+	selected      int
+	busy          bool
+	status        string
+	quitting      bool
+	cancel        context.CancelFunc
+	workers       *operationGroup
+	height        int
+	width         int
+	confirmBackup bool
+	offset        int
 }
 
 type operationGroup struct{ sync.WaitGroup }
@@ -373,6 +375,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch v := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.height = v.Height
+		m.width = v.Width
 		m.offset = 0
 		return m, nil
 	case resultMsg:
@@ -387,7 +390,30 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 	case tea.KeyMsg:
+		if m.confirmBackup {
+			m.confirmBackup = false
+			if v.String() != "enter" {
+				m.status = "Backup cancelled. No job started."
+				return m, nil
+			}
+			// Reuse the guarded operation path only after explicit confirmation.
+			v = tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'b'}}
+		} else if v.String() == "b" && !m.busy && len(m.cfg.Projects) > 0 {
+			p := m.cfg.Projects[m.selected]
+			if m.cfg.RecoveryOnly || p.CaptureRequired {
+				m.status = "Interactive backup unavailable for this project.\nUse the reviewed capture workflow or recovery CLI. Press g for guidance."
+				return m, nil
+			}
+			m.confirmBackup = true
+			m.offset = 0
+			m.status = "Start backup + repository check for " + p.Name + "?\nThis uploads data to the configured repository.\nEnter: start · any other key: cancel"
+			return m, nil
+		}
 		switch v.String() {
+		case "?":
+			m.status = tuiWelcome()
+			m.offset = 0
+			return m, nil
 		case "pgdown":
 			m.offset += m.pageSize()
 			m.clampOffset()
@@ -469,12 +495,15 @@ func (m model) View() string {
 		}
 		fmt.Fprintf(&b, "%s%s\n", cursor, p.Name)
 	}
+	if len(m.cfg.Projects) == 0 {
+		b.WriteString("No projects configured. Review your configuration before continuing.\n")
+	}
 	b.WriteString("\n↑/↓ select · b backup+check · h job history · s snapshots · c check\n")
-	b.WriteString("p retention preview · d Drive status · g recovery guide · PgUp/PgDn scroll · q quit\n")
+	b.WriteString("p retention preview · d Drive status · g recovery guide · ? help\nPgUp/PgDn scroll · q quit\n")
 	if m.busy {
 		b.WriteString("Operation in progress\n")
 	}
-	lines := strings.Split(m.status, "\n")
+	lines := m.detailLines()
 	start := min(max(m.offset, 0), max(len(lines)-m.pageSize(), 0))
 	end := min(start+m.pageSize(), len(lines))
 	b.WriteString("\n" + strings.Join(lines[start:end], "\n") + "\n")

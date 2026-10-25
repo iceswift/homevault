@@ -6,8 +6,46 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"homevault/internal/config"
 	"homevault/internal/engine"
 )
+
+func TestTUIBackupConfirmationDoesNotStartOrChangeProject(t *testing.T) {
+	m := model{cfg: config.Config{Projects: []config.Project{{Name: "one"}, {Name: "two"}}}}
+	updated, cmd := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'b'}})
+	m = updated.(model)
+	if cmd != nil || m.busy || !m.confirmBackup || !strings.Contains(m.status, "one?") {
+		t.Fatal("backup started without confirmation")
+	}
+	updated, cmd = m.Update(tea.KeyMsg{Type: tea.KeyDown})
+	m = updated.(model)
+	if cmd != nil || m.confirmBackup || m.selected != 0 || !strings.Contains(m.status, "cancelled") {
+		t.Fatal("confirmation allowed a different project to be selected")
+	}
+	m.cfg.Projects[0].CaptureRequired = true
+	updated, cmd = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'b'}})
+	if cmd != nil || updated.(model).confirmBackup {
+		t.Fatal("capture-only project offered interactive backup")
+	}
+}
+
+func TestTUIWelcomeAndWrappedPaging(t *testing.T) {
+	m := model{width: 32, height: 24}
+	if !strings.Contains(m.View(), "No projects configured") {
+		t.Fatal("empty configuration has no guidance")
+	}
+	for _, line := range m.detailLines() {
+		if len([]rune(line)) > 31 {
+			t.Fatal("detail line exceeds terminal width", line)
+		}
+	}
+	m.status = strings.Repeat("long detail ", 100)
+	m.offset = 10000
+	m.clampOffset()
+	if m.offset != len(m.detailLines())-m.pageSize() {
+		t.Fatal("paging does not account for wrapping")
+	}
+}
 
 func TestTUIJobHistoryDoesNotExposeRepositoryIdentity(t *testing.T) {
 	s := engine.JobStatus{Project: "example", RepositoryID: "private-repository-fingerprint", Latest: engine.JobAttempt{Status: "never-run"}}

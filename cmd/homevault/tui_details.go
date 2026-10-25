@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/x/ansi"
+
 	"homevault/internal/drive"
 	"homevault/internal/engine"
 )
@@ -23,11 +25,33 @@ func (m model) pageSize() int {
 	if height == 0 {
 		height = 24
 	}
-	return max(3, height-len(m.cfg.Projects)-11)
+	return max(1, height-max(1, len(m.cfg.Projects))-12)
+}
+
+func tuiWelcome() string {
+	return "GET STARTED\n" +
+		"1. Select a project with Up/Down.\n" +
+		"2. Press h for verified job history or s for cloud snapshots.\n" +
+		"3. Press d for local Drive credentials; this does not test connectivity.\n" +
+		"4. Press g for recovery instructions.\n\n" +
+		"Backup requires confirmation. Retention preview never deletes data.\n" +
+		"Schedule and workflow activation are managed separately; this screen does not verify timers."
+}
+
+func (m model) detailLines() []string {
+	text := m.status
+	if text == "" {
+		text = tuiWelcome()
+	}
+	width := m.width
+	if width <= 0 {
+		width = 80
+	}
+	return strings.Split(ansi.Hardwrap(text, max(1, width-1), true), "\n")
 }
 
 func (m *model) clampOffset() {
-	m.offset = min(max(0, m.offset), max(0, len(strings.Split(m.status, "\n"))-m.pageSize()))
+	m.offset = min(max(0, m.offset), max(0, len(m.detailLines())-m.pageSize()))
 }
 
 func displayTime(t time.Time) string {
