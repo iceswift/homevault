@@ -120,6 +120,19 @@ func (b *Backend) Load() (statusdata.Snapshot, error) {
 			row.Note = "Local job record unreadable; no backup absence is inferred."
 		} else {
 			row.Uploaded = state.LastSuccess
+			row.HistoryKnown = true
+			seen := map[string]bool{}
+			add := func(a engine.JobAttempt) {
+				if a.ID == "" || seen[a.ID] || len(row.History) >= 33 {
+					return
+				}
+				seen[a.ID] = true
+				row.History = append(row.History, statusdata.JobRecord{ID: a.ID, Status: a.Status, Phase: a.Phase, Started: a.Started, Finished: a.Finished, BackupPassed: a.BackupPassed, CheckPassed: a.CheckPassed, CapturePassed: a.CapturePassed})
+			}
+			add(state.Latest)
+			for i := len(state.History) - 1; i >= 0; i-- {
+				add(state.History[i])
+			}
 			switch state.Latest.Status {
 			case "success":
 				row.Attempt = "Recorded backup + check passed"

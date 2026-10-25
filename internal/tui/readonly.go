@@ -74,7 +74,16 @@ func (m *Model) applyData(data statusdata.Snapshot) error {
 		default:
 			state = "unknown"
 		}
-		projects = append(projects, project{id: row.ID, name: cleanDisplay(row.Name), kind: cleanDisplay(row.Kind), state: state, attempt: cleanDisplay(row.Attempt), recovery: cleanDisplay(row.Recovery), schedule: cleanDisplay(row.Schedule), note: cleanDisplay(row.Note), activation: cleanDisplay(row.Activation), scope: cleanDisplay(row.RecordScope), projectName: cleanDisplay(row.ProjectName), captured: row.Captured, uploaded: row.Uploaded})
+		if len(row.History) > 33 {
+			return fmt.Errorf("local history exceeds display limit")
+		}
+		history := append([]statusdata.JobRecord(nil), row.History...)
+		for i := range history {
+			history[i].ID = cleanDisplay(history[i].ID)
+			history[i].Status = cleanDisplay(history[i].Status)
+			history[i].Phase = cleanDisplay(history[i].Phase)
+		}
+		projects = append(projects, project{historyKnown: row.HistoryKnown, history: history, id: row.ID, name: cleanDisplay(row.Name), kind: cleanDisplay(row.Kind), state: state, attempt: cleanDisplay(row.Attempt), recovery: cleanDisplay(row.Recovery), schedule: cleanDisplay(row.Schedule), note: cleanDisplay(row.Note), activation: cleanDisplay(row.Activation), scope: cleanDisplay(row.RecordScope), projectName: cleanDisplay(row.ProjectName), captured: row.Captured, uploaded: row.Uploaded})
 	}
 	m.projects = projects
 	m.now = data.ReadAt

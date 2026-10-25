@@ -97,5 +97,5 @@ terminal. Check whether selection/context stay understandable, errors stand out
 without color and the source/upload/recovery distinctions are clear.
 
 A separate [read-only local-record view](TUI-STATUS.md) is now available on main.
-The prototype remains synthetic. Explicit reviewed actions are still future work;
+The prototype remains synthetic. Separate [reviewed manual file jobs](TUI-JOBS.md) are also available on main;
 this prototype contains no engine reference and never initiates an operation.

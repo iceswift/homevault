@@ -8,6 +8,7 @@ Dates use `YYYY-MM-DD`; release history links point to the exact tag or comparis
 
 ### Added
 
+- Read-only local attempt history inside `tui-jobs` (`h`), with newest-first deduplication, recorded durations, separate backup/check results and conservative refresh-error states.
 - Separate `tui-jobs` mode for explicitly configured file-only manual backup/check jobs, typed confirmation, recorded progress and cancellation cleanup. Configuration and previous-job guards run under the engine lock; database/capture/recovery scopes remain blocked.
 - Native `tui-status --plan FILE` local-record view with manual async refresh, explicit coordinator/legacy provenance, source/upload age separation and conservative Unknown states. It performs no engine actions, credential-file reads, cloud/service checks or state writes.
 - Isolated `tui-demo` design prototype with mock Overview/Projects/details, filtering, responsive layouts, ASCII/monochrome support and deterministic frame rendering. It never loads live config or starts backup operations.

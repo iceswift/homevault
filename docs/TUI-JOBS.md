@@ -48,3 +48,30 @@ Verification covers typed confirmation, blocked scopes, one-use reviews, stale
 configuration/job refusal, cancellation cleanup, redacted completion warnings and
 rendering without state creation. Generated-data Linux terminal testing is separate
 from production cloud backups and application recovery.
+
+## Local attempt history
+
+Press `h` from a project list or details to open that project's native engine
+history. Newest recorded attempts appear first; the current attempt is not repeated
+when it also appears in the completed history. The engine retains up to 32 completed
+attempts; a running record can add one more entry. This is not a cloud snapshot list
+or a complete audit log.
+
+Each entry shows its attempt ID, start/finish timestamps, completed duration and
+separate backup/check results. `not recorded passed` does not assert that a step ran
+and failed: it might not have been reached. A running record does not prove that its
+process is alive. Cancellation is shown separately from failure at a backup/check
+phase. The last recorded successful backup/check remains visible above the list even
+if the latest attempt failed. Source freshness and application recovery stay unknown.
+
+- Up/Down or `j`/`k`, Page Up/Page Down: scroll.
+- `r`: explicitly reload local records; no cloud lookup or engine job is started.
+- Esc or `h`: return to the same project; `q`/Ctrl+C: quit.
+- `b` and Enter do not start jobs from history; return to the project first.
+
+Missing/unreadable history is distinguished from a successfully read empty history.
+On refresh failure, cached attempts are hidden until a successful refresh, rather
+than presented as current evidence. The selected history stays bound to its project
+ID across refreshed list reordering. Navigation, scrolling and refresh create no
+history files and send no notifications. `tui-status` and `tui-demo` remain separate
+and do not expose this manual-job history panel.

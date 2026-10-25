@@ -8,6 +8,15 @@ type Project struct {
 	Attempt, Recovery, Schedule, Note    string
 	Activation, RecordScope, ProjectName string
 	Captured, Uploaded                   time.Time
+	HistoryKnown                         bool
+	History                              []JobRecord
+}
+
+// JobRecord is bounded local evidence, never a cloud snapshot or recovery proof.
+type JobRecord struct {
+	ID, Status, Phase                        string
+	Started, Finished                        time.Time
+	BackupPassed, CheckPassed, CapturePassed bool
 }
 
 type Snapshot struct {

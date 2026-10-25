@@ -1,5 +1,5 @@
-// Package tui displays synthetic previews or explicitly loaded read-only records.
-// Navigation/rendering never invoke engine operations; live refresh uses an explicit read-only data loader.
+// Package tui displays synthetic previews, read-only local records or explicitly reviewed manual jobs.
+// Navigation and rendering are separate from the optional Jobs capability.
 package tui
 
 import (
@@ -19,6 +19,8 @@ type project struct {
 	id, name, kind, state, attempt, recovery, schedule, note string
 	activation, scope, projectName                           string
 	captured, uploaded                                       time.Time
+	historyKnown                                             bool
+	history                                                  []statusdata.JobRecord
 }
 
 func fixtures() []project {
@@ -55,6 +57,7 @@ type Model struct {
 	jobActive, jobPanel, quitAfterJob        bool
 	jobID, jobPhase, jobState, jobMessage    string
 	events                                   jobEvents
+	historyProject                           string
 }
 
 func newLayout(options Options) (Model, error) {
@@ -121,10 +124,12 @@ func (m *Model) clamp() {
 	n := len(m.filtered())
 	m.selected = min(max(0, m.selected), max(0, n-1))
 	m.offset = max(0, m.offset)
-	if m.help || m.details && n > 0 {
+	if m.historyProject != "" || m.help || m.details && n > 0 {
 		_, _, height := m.layout()
 		var lines []string
-		if m.help {
+		if m.historyProject != "" {
+			lines = m.historyLines(max(1, m.width))
+		} else if m.help {
 			lines = m.helpLines(max(1, m.width))
 		} else {
 			lines = m.detail(m.filtered()[m.selected], max(1, m.width), false)
@@ -501,7 +506,7 @@ func (m Model) layout() (head, footer []string, available int) {
 	} else if m.query != "" {
 		head = append(head, m.wrap("Filter: "+m.query, width)...)
 	}
-	if m.page == 0 && !m.details && !m.help && !m.reviewLoading && m.review == nil && !m.jobPanel {
+	if m.page == 0 && !m.details && !m.help && !m.reviewLoading && m.review == nil && !m.jobPanel && m.historyProject == "" {
 		if m.live {
 			head = append(head, m.wrap(m.summary(), width)...)
 		} else if width < 80 {
@@ -536,8 +541,11 @@ func (m Model) layout() (head, footer []string, available int) {
 	if m.live && !m.searching && !m.help {
 		hint += " | r refresh"
 	}
-	if m.jobs != nil {
-		hint = "Enter details | b review | / search | r refresh | ? help | q quit"
+	if m.jobs != nil && !m.searching && !m.help && !m.details {
+		hint = "Enter details | h history | b review | / search | r refresh | ? help | q quit"
+	}
+	if m.historyProject != "" {
+		hint = "Esc/h back | Up/Down/PgUp/PgDn scroll | r refresh | q quit"
 	}
 	if m.reviewLoading || m.review != nil {
 		hint = "Review only | Enter confirms exact ID | Esc cancels"
@@ -603,6 +611,8 @@ func (m Model) View() string {
 	switch {
 	case m.reviewLoading || m.review != nil || m.jobPanel:
 		body = window(m.jobsPanel(width), m.offset, available)
+	case m.historyProject != "":
+		body = window(m.historyLines(width), m.offset, available)
 	case m.help:
 		body = window(m.helpLines(width), m.offset, available)
 	case m.details && len(projects) > 0:

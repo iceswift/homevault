@@ -159,3 +159,32 @@ func TestCancelWaitAndCompletionWarning(t *testing.T) {
 		t.Fatal("warning erased verification or exposed detail")
 	}
 }
+
+func TestLoadHistoryIsNewestFirstDeduplicatedAndReadOnly(t *testing.T) {
+	b, f := backendFixture(t)
+	now := time.Now().UTC()
+	old := engine.JobAttempt{ID: strings.Repeat("a", 24), Status: "success", Phase: "completed", Started: now.Add(-time.Hour), Finished: now.Add(-59 * time.Minute), BackupPassed: true, CheckPassed: true}
+	failed := engine.JobAttempt{ID: strings.Repeat("b", 24), Status: "failed", Phase: "check", Started: now.Add(-time.Minute), Finished: now, BackupPassed: true}
+	f.state.History = []engine.JobAttempt{old, failed}
+	f.state.Latest = failed
+	f.state.LastSuccess = old.Finished
+	data, err := b.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := data.Projects[0]
+	if !p.HistoryKnown || len(p.History) != 2 || p.History[0].ID != failed.ID || p.History[1].ID != old.ID || !p.Uploaded.Equal(old.Finished) {
+		t.Fatal("history ordering, deduplication or prior success lost")
+	}
+	if p.History[0].CheckPassed || !p.History[0].BackupPassed || p.State != "failed" {
+		t.Fatal("failed check mislabeled")
+	}
+	f.state.Latest = engine.JobAttempt{ID: strings.Repeat("c", 24), Status: "running", Phase: "backup", Started: now}
+	data, err = b.Load()
+	if err != nil || len(data.Projects[0].History) != 3 || data.Projects[0].History[0].Status != "running" {
+		t.Fatal("running attempt lost")
+	}
+	if _, err := os.Stat(b.cfg.StateDir); !os.IsNotExist(err) || f.calls != 0 {
+		t.Fatal("history read created state or ran job")
+	}
+}

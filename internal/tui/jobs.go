@@ -158,6 +158,9 @@ func (m *Model) handleJobs(msg tea.KeyMsg) (bool, tea.Cmd) {
 		}
 		return true, nil
 	}
+	if handled, cmd := m.handleHistory(msg); handled {
+		return true, cmd
+	}
 	if key == "b" && !m.searching && !m.help {
 		if m.loading {
 			m.notice = "Wait for the current metadata refresh."
@@ -210,7 +213,7 @@ func (m Model) jobsPanel(width int) []string {
 }
 func fmtCount(n int) string { return fmt.Sprint(n) }
 func (m Model) jobsHelp(width int) []string {
-	return m.wrap("MANUAL FILE JOBS\n\nb: review selected project; type its exact ID then Enter to start\nEsc: cancel review (no job)\nx: request cancellation while running\nq/Ctrl+C during a job: cancel and wait for cleanup before quitting\n\nOnly file-only projects are supported. Capture-required, database and recovery-only configurations are blocked.\nThis command invokes manual native jobs, not coordinator workflows: their enabled flags/windows are not loaded.\nExisting engine operation/credential locks, config validation and process cancellation are used.\nNo repository initialization, app pause, restore, deletion, unlock or timer action exists here.\nConfigured notifications may follow a confirmed job.\n\nSources must exclude live databases. A successful job is backup/check evidence only.\nr manually refreshes local job records; source freshness/recovery remain unknown.\nHard process kills/power loss can require independent lock/recovery investigation; no automatic stale unlock is performed.", width)
+	return m.wrap("MANUAL FILE JOBS\n\nh: browse local attempt history (no cloud lookup)\nb: review selected project; type its exact ID then Enter to start\nEsc: cancel review (no job)\nx: request cancellation while running\nq/Ctrl+C during a job: cancel and wait for cleanup before quitting\n\nOnly file-only projects are supported. Capture-required, database and recovery-only configurations are blocked.\nThis command invokes manual native jobs, not coordinator workflows: their enabled flags/windows are not loaded.\nExisting engine operation/credential locks, config validation and process cancellation are used.\nNo repository initialization, app pause, restore, deletion, unlock or timer action exists here.\nConfigured notifications may follow a confirmed job.\n\nSources must exclude live databases. A successful job is backup/check evidence only.\nr manually refreshes local job records; source freshness/recovery remain unknown.\nHard process kills/power loss can require independent lock/recovery investigation; no automatic stale unlock is performed.", width)
 }
 
 func (m *Model) clampJobOffset() {
