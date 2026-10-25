@@ -1,0 +1,18 @@
+HOMEVAULT · encrypted backup orchestrator
+
+> synthetic
+
+↑/↓ select · b backup+check · h job history · s snapshots · c check
+p retention preview · d Drive status · g recovery guide · ? help
+PgUp/PgDn scroll · q quit
+
+GET STARTED
+1. Select a project with Up/Down.
+2. Press h for verified job history or s for cloud snapshots.
+3. Press d for local Drive credentials; this does not test connectivity.
+4. Press g for recovery instructions.
+
+Backup requires confirmation. Retention preview never deletes data.
+Schedule and workflow activation are managed separately; this screen does not verify timers.
+
+Restore uses the explicit CLI command. Scheduled backups run via systemd.

@@ -27,7 +27,7 @@ def verify_archive(path, version, arch, commit):
             if member.size < 0 or total > 64 * 1024 * 1024:
                 raise ValueError("archive exceeds size limit")
             relative = "/".join(parts[1:])
-            if relative not in {"homevault", "RELEASE.json", "README.md", "LICENSE", "CONTRIBUTING.md", "SECURITY.md", "scripts/quickstart-smoke.sh"} and not re.fullmatch(r"docs/[A-Z][A-Z0-9-]*\.(md|txt)", relative):
+            if relative not in {"homevault", "RELEASE.json", "README.md", "LICENSE", "CONTRIBUTING.md", "SECURITY.md", "scripts/quickstart-smoke.sh", "docs/assets/README.md", "docs/assets/tui-welcome.txt", "docs/assets/tui-welcome.png"} and not re.fullmatch(r"docs/[A-Z][A-Z0-9-]*\.(md|txt)", relative):
                 raise ValueError("unexpected archive content")
             files[member.name] = (archive.extractfile(member).read(), member.mode)
     for name in ["homevault", "RELEASE.json", "README.md", "LICENSE", "docs/QUICKSTART.md", "scripts/quickstart-smoke.sh"]:

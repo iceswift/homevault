@@ -13,27 +13,20 @@ job history, capture workflows and recovery checks around those tools.
 **Early development · Ubuntu/Linux first.** Start with the local demo below.
 A successful backup is not proof that your application can recover.
 
-[Try the local demo](docs/QUICKSTART.md) · [Connect Google Drive](docs/DRIVE-OAUTH.md) ·
-[Prepare a real project](docs/ONBOARDING.md) · [Recovery evidence](docs/VM-RECOVERY-DRILL.md)
+**[Download Linux Preview v0.1.0-preview.1](https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.1)**
+· [Install and verify checksums](docs/RELEASING.md)
+· [Try the local demo](docs/QUICKSTART.md)
+
+Linux amd64 has extracted-package restore tests. ARM64 is cross-built; runtime
+remains unverified. This is a prerelease, not a stable release.
 
 ## What using it looks like
 
-Illustrative terminal view; project names and output depend on your configuration:
+![Actual HomeVault welcome screen with a synthetic project, keyboard shortcuts and getting-started guidance](docs/assets/tui-welcome.png)
 
-```text
-HOMEVAULT · encrypted backup orchestrator
-
-> photos
-  documents
-
-↑/↓ select · b backup+check · h job history · s snapshots · c check
-p retention preview · d Drive status · g recovery guide · ? help
-PgUp/PgDn scroll · q quit
-
-GET STARTED
-1. Select a project with Up/Down.
-2. Press h for verified job history or s for cloud snapshots.
-```
+Actual TUI output captured on Linux with generated data, rendered as a terminal
+image. [Plain-text capture and provenance](docs/assets/README.md). No real backup
+history, account identifiers or credentials are shown.
 
 Press `b` to review a backup confirmation, then Enter to start or any other key to
 cancel. Capture-required applications use their reviewed workflow instead.
@@ -41,9 +34,16 @@ Opening the TUI does not enable schedules or delete snapshots.
 
 ## Try it without a cloud account
 
-You need Git, Go 1.24.5+ and Restic on Ubuntu/Linux. rclone is only needed for cloud
-repositories. No Docker, Google account, sudo or application data is needed for
-the demo once these dependencies are installed.
+The [prebuilt-package guide](docs/RELEASING.md) covers download, checksum verification
+and running the bundled local demo without Go. You need Restic separately; the
+demo uses Bash and Python 3.11+. rclone is only needed for cloud repositories.
+No Docker, Google account, sudo or application data is needed for the demo once
+these dependencies are installed.
+
+<details>
+<summary>Prefer to build from source?</summary>
+
+You also need Git and Go 1.24.5+:
 
 ```sh
 git clone https://github.com/iceswift/homevault.git
@@ -54,12 +54,12 @@ go build -trimpath -o bin/homevault ./cmd/homevault
 
 Follow the [copy-and-paste local Quick Start](docs/QUICKSTART.md) to create sample
 data, back it up, restore it into a separate directory and compare the bytes.
-The guide includes expected results and troubleshooting. Do this before adding
-real data or setting up Google Drive.
+The guide includes expected results and troubleshooting.
 
-Prefer a prebuilt executable? See [preview installation and checksum verification](docs/RELEASING.md).
-The first public preview is [v0.1.0-preview.1](https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.1),
-with Linux archives and checksums. It is a prerelease, not a stable release.
+</details>
+
+Complete the sample restore before adding real data or setting up
+[Google Drive](docs/DRIVE-OAUTH.md). Then [prepare a real project](docs/ONBOARDING.md).
 
 ## Choose the right scope
 

@@ -60,7 +60,7 @@ You can keep the executable in this directory; global installation is optional.
 ## What is in an archive?
 
 Only the HomeVault executable, MIT license, README, `RELEASE.json`, the generated-data
-demo script and an explicit allowlist of tracked public documents. No private
+demo script and an explicit allowlist of tracked public documents/preview assets. No private
 configuration, credentials, database, repository contents or operator notes are
 included. Restic/rclone/Python/age/database tools are not bundled.
 

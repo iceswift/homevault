@@ -1,59 +1,54 @@
-# HomeVault development direction
+# HomeVault roadmap
 
-Chosen direction (24 October 2026): make backup and verified recovery easier for Docker home-server applications. Do not claim that TUI, encrypted cloud backup, scheduling or rclone integration are novel, or that this prototype is faster/more reliable than mature alternatives without comparative evidence.
+Updated 25 October 2026. The goal is to make selected Linux home-server backups
+and verified application recovery easier to operate. This is a direction, not a
+release-date promise. Implemented experimental features still require review and
+restore testing for each deployment.
 
-## Working foundation
+## Delivered
 
-CLI/TUI, file backups through Restic, local/cloud snapshots, guarded restore, process locking/cancellation, and a synthetic Google Drive round trip. Current limits and verification evidence live in TESTING.md.
+| Area | Available now | Evidence / limits |
+| --- | --- | --- |
+| Encrypted backup and guarded restore | Go CLI/TUI around Restic; local or rclone cloud transport; project locks and cancellation | [Testing](TESTING.md); local generated-data integration and separate operator Drive drills |
+| Terminal UX | Getting-started guidance, backup confirmation, job history, retention preview and detail scrolling | [Quick Start](QUICKSTART.md); no inference that timers are enabled |
+| Project and Drive onboarding | Existing-key starter config, desktop PKCE OAuth wizard, local and explicit online status checks | [Onboarding](ONBOARDING.md) / [OAuth](DRIVE-OAUTH.md); Google Cloud client creation remains manual |
+| Database preparation and capture | Experimental SQLite/PostgreSQL exports and pinned single-container capture with resume guards | [Databases](DATABASE-BACKUPS.md) / [Capture](FRESH-CAPTURE.md); not arbitrary application consistency |
+| Jobs and alerts | Durable backup/check status, source-age checks, optional Discord alerts and reviewed systemd templates | [Workflows](PLANNED-WORKFLOWS.md); installation/preflight is separate from live scheduled proof |
+| Retention and storage reclamation | Read-only plans, explicit reviewed snapshot removal and separate no-repack prune | [Retention](RETENTION.md) / [Prune](PRUNE.md); automatic deletion is not implemented |
+| Recovery preparation | Encrypted credential kits, selected image/config catalogs and isolated app rehearsals | [VM drill](VM-RECOVERY-DRILL.md); selected apps on the original physical host, not full host reconstruction |
+| Public distribution | [v0.1.0-preview.1](https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.1), checksums and extracted-package amd64 restore tests | [Releasing](RELEASING.md); ARM64 is cross-built only; no stable release |
+| Contributor entry points | Contribution/security policies, private vulnerability reporting and issue/PR templates | [Contributing](../CONTRIBUTING.md) / [Security](../SECURITY.md) |
 
-## Next development milestones
+## Current focus
 
-1. Database-aware preparation: experimental Linux PostgreSQL exports and SQLite online backup implemented, with private staging and failure before upload. See DATABASE-BACKUPS.md. Remaining: application-specific coordinated write pause, real-project onboarding and broader compatibility tests. No blind copy of live database storage.
-2. Application recovery rehearsal: isolated app recovery and optional ephemeral PostgreSQL import implemented, with health/database/media/login reports. Python fixture, actual DealDoor image with new demo data, and a synthetic PostgreSQL+app stack passed. Invalid SQL import fails closed with cleanup. See RECOVERY-REHEARSAL.md and POSTGRES-RECOVERY.md. Remaining: production-data recovery onboarding, broader app/version compatibility and crash recovery. Production stacks remain unchanged.
-3. Guided onboarding: a guarded setup command generates a private starter config and restore checklist using an existing key, with separate file/SQLite inputs and optional capture-required policy. The Drive OAuth wizard adds private setup, PKCE browser consent and local/explicit online status; see DRIVE-OAUTH.md and ONBOARDING.md. Google Cloud client creation, PostgreSQL wizard and automatic production installation remain manual/future work.
-4. Durable job state: implemented bounded job history, distinct backup/check outcomes, last-success preservation, freshness monitoring and optional deduplicated Discord failure/overdue/recovery delivery. Restore/rehearsal proof remains separate. See SCHEDULING-ALERTS.md.
-5. Scheduled operations and retention: fresh SQLite capture, maintenance-window gate, guardian/rescue helpers and dedicated systemd templates implemented and fixture-tested. One owner-operated deployment also passed a fresh live capture/rehearsal, real Discord delivery tests and manually installed systemd preflight/monitor services. Its capture service has not been run under systemd and no timer is enabled. See OPERATOR-VALIDATION.md for exact scope. Reviewed manual retention/pruning is described below; automatic retention/pruning is not enabled or implemented.
+| Work | Current state | Completion evidence needed |
+| --- | --- | --- |
+| Independent onboarding trial | Documentation and local demo are ready; external-user trial pending | Another person follows the published package guide and completes byte-verified restore; record friction and fixes |
+| Operational workflow readiness | Four operator workflows have passed systemd preflight and a disabled monitor run | Reviewed cleanup policy, maintenance windows, one real coordinated cycle and suite alert verification before timers |
+| Recovery coverage review | Selected app/config/image backups and VM drill completed | Close host inventory gaps and document what must be recreated manually; keep scope tied to tested evidence |
 
-Public website must label these as planned until implemented and tested. Google OAuth Production status is separate from product maturity or public launch readiness.
+The operator's preferred times and retention periods are private deployment
+choices, not public defaults. No recurring cloud schedule or automatic deletion
+is implied by these entries. See [operator validation](OPERATOR-VALIDATION.md).
 
-Disaster recovery update: age-encrypted portable credential kits and guarded
-recovery-only configs are implemented. Generated-data drills recovered after the
-original source/key/state were removed, including a fresh network-none container
-with DB/media/app health/login checks. See RECOVERY-KIT.md. This does not certify
-actual production key custody, physical machine/cloud-account loss or production
-cutover. An actual owner-operated credential kit was subsequently opened off-server;
-see OPERATOR-VALIDATION.md. No production timer has been activated.
+## Next, after the current checks
 
-Retention update: a project-scoped, read-only `retention-plan` preview is implemented
-with calendar buckets and protected snapshots; `retention-save` and explicit manual
-`retention-apply` now support reviewed snapshot-record removal with expiry, metadata
-binding, preserved kept ID, pre/post checks and audit. See RETENTION.md. Separate
-reviewed repository-wide unused-pack prune is implemented with dry-run estimates,
-all-snapshot/pack/index binding, fixed no-repack mode and pre/post checks; see
-PRUNE.md. Automatic retention/pruning and bounded data repacking remain future work.
+1. Fix onboarding/TUI friction found by independent testers; make errors and next actions clearer.
+2. Add bounded cleanup of local capture stages and more complete producer-failure monitoring.
+3. Exercise crash/reboot/resume behavior under real systemd service execution using generated data.
+4. Expand explicit platform/app compatibility tests, including native ARM64 runtime testing.
+5. Improve guided PostgreSQL setup and Drive client onboarding while preserving explicit authorization.
+6. Review automatic scheduling/retention separately, with dry-run plans, protection for recovery points and failure handling before activation.
 
-Usability/distribution update: TUI history, retention preview, recovery guide and
-paging are implemented. CI, Linux package/checksum generation and tag-triggered
-draft prerelease workflows are prepared; see RELEASING.md. No stable release or
-production activation is implied. One operator has completed key custody, approved
-live capture/rehearsal, private webhook tests and manual preflight/monitor service
-tests. Capture-service execution and explicit schedule activation remain pending.
-Cloud-based replacement-machine preparation has advanced: selected application
-data, deployment/host configuration and pinned images were backed up encrypted
-with restored hash checks. An operator-specific catalog/bootstrap and independently
-opened credential kit are prepared; see OPERATOR-VALIDATION.md and REBUILD.md.
-An isolated Ubuntu VM subsequently loaded the seven recovered images and passed
-selected application/database/media/auth/restart checks; see VM-RECOVERY-DRILL.md.
-This is not complete host recovery. Privileged inventory gaps, hardware/host-service
-reconstruction, account-loss tests and reviewed cutover remain.
-No second disk in the source server is required. Data repacking, crash/reboot
-certification and broader platform/app compatibility remain future work.
+## Longer-term boundaries
 
-Workflow preparation update: an experimental Linux coordinator connects reviewed
-SQLite/JSON capture, a completed Saan-format local bundle and deployment/static
-files to verified jobs and source-age-aware alerts. Activation/notification gates,
-deduplication, failure preservation and fixtures are covered in PLANNED-WORKFLOWS.md.
-An operator installed static service definitions and ran read-only source checks;
-no live coordinator pause/upload, real suite alert or timer activation is implied.
-Local-stage cleanup and complete producer-specific failure monitoring remain
-activation/operational review items; no automatic Drive deletion was added.
+Full replacement-host reconstruction, hardware/cloud-account-loss scenarios and
+reviewed production cutover remain unproven. The [rebuild runbook](REBUILD.md)
+helps prepare selected recovery inputs; it does not automatically install an OS,
+recreate every host service or supply a bootable disk image. Data repacking,
+signed release provenance and broader multi-service compatibility need separate
+work and evidence.
+
+Do not describe TUI, encrypted cloud backup or rclone integration as novel, or
+claim performance/reliability superiority over established tools without comparative
+results. OAuth Production status is separate from product maturity.
