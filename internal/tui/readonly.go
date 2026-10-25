@@ -83,7 +83,21 @@ func (m *Model) applyData(data statusdata.Snapshot) error {
 			history[i].Status = cleanDisplay(history[i].Status)
 			history[i].Phase = cleanDisplay(history[i].Phase)
 		}
-		projects = append(projects, project{backupCheck: row.BackupCheck, historyKnown: row.HistoryKnown, history: history, id: row.ID, name: cleanDisplay(row.Name), kind: cleanDisplay(row.Kind), state: state, attempt: cleanDisplay(row.Attempt), recovery: cleanDisplay(row.Recovery), schedule: cleanDisplay(row.Schedule), note: cleanDisplay(row.Note), activation: cleanDisplay(row.Activation), scope: cleanDisplay(row.RecordScope), projectName: cleanDisplay(row.ProjectName), captured: row.Captured, uploaded: row.Uploaded})
+		var readiness *statusdata.Readiness
+		if row.Readiness != nil {
+			if len(row.Readiness.Checks) > 32 {
+				return fmt.Errorf("readiness exceeds display limit")
+			}
+			r := *row.Readiness
+			r.ConfigPath, r.Destination, r.Fingerprint = cleanDisplay(r.ConfigPath), cleanDisplay(r.Destination), cleanDisplay(r.Fingerprint)
+			r.Checks = append([]statusdata.ReadinessCheck(nil), r.Checks...)
+			for i := range r.Checks {
+				c := &r.Checks[i]
+				c.Name, c.State, c.Detail, c.Action = cleanDisplay(c.Name), cleanDisplay(c.State), cleanDisplay(c.Detail), cleanDisplay(c.Action)
+			}
+			readiness = &r
+		}
+		projects = append(projects, project{readiness: readiness, backupCheck: row.BackupCheck, historyKnown: row.HistoryKnown, history: history, id: row.ID, name: cleanDisplay(row.Name), kind: cleanDisplay(row.Kind), state: state, attempt: cleanDisplay(row.Attempt), recovery: cleanDisplay(row.Recovery), schedule: cleanDisplay(row.Schedule), note: cleanDisplay(row.Note), activation: cleanDisplay(row.Activation), scope: cleanDisplay(row.RecordScope), projectName: cleanDisplay(row.ProjectName), captured: row.Captured, uploaded: row.Uploaded})
 	}
 	m.projects = projects
 	m.now = data.ReadAt

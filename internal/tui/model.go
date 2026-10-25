@@ -19,6 +19,7 @@ type project struct {
 	id, name, kind, state, attempt, recovery, schedule, note string
 	activation, scope, projectName                           string
 	captured, uploaded                                       time.Time
+	readiness                                                *statusdata.Readiness
 	backupCheck                                              string
 	historyKnown                                             bool
 	history                                                  []statusdata.JobRecord
@@ -61,6 +62,7 @@ type Model struct {
 	events                                   jobEvents
 	historyProject                           string
 	contextLabel                             string
+	readinessProject                         string
 }
 
 func newLayout(options Options) (Model, error) {
@@ -137,10 +139,12 @@ func (m *Model) clamp() {
 	n := len(m.filtered())
 	m.selected = min(max(0, m.selected), max(0, n-1))
 	m.offset = max(0, m.offset)
-	if m.historyProject != "" || m.help || m.details && n > 0 {
+	if m.readinessProject != "" || m.historyProject != "" || m.help || m.details && n > 0 {
 		_, _, height := m.layout()
 		var lines []string
-		if m.historyProject != "" {
+		if m.readinessProject != "" {
+			lines = m.readinessLines(max(1, m.width))
+		} else if m.historyProject != "" {
 			lines = m.historyLines(max(1, m.width))
 		} else if m.help {
 			lines = m.helpLines(max(1, m.width))
@@ -528,7 +532,7 @@ func (m Model) layout() (head, footer []string, available int) {
 	} else if m.query != "" {
 		head = append(head, m.wrap("Filter: "+m.query, width)...)
 	}
-	if m.page == 0 && !m.details && !m.help && !m.reviewLoading && m.review == nil && !m.jobPanel && m.historyProject == "" {
+	if m.page == 0 && !m.details && !m.help && !m.reviewLoading && m.review == nil && !m.jobPanel && m.historyProject == "" && m.readinessProject == "" {
 		if m.live {
 			head = append(head, m.wrap(m.summary(), width)...)
 		} else if width < 80 {
@@ -564,10 +568,13 @@ func (m Model) layout() (head, footer []string, available int) {
 		hint += " | r refresh"
 	}
 	if m.jobs != nil && !m.searching && !m.help && !m.details {
-		hint = "Enter details | h history | b review | / search | r refresh | ? help | q quit"
+		hint = "Enter details | d readiness | h history | b review | / search | r refresh | ? help | q quit"
 	}
 	if m.historyProject != "" {
 		hint = "Esc/h back | Up/Down/PgUp/PgDn scroll | r refresh | q quit"
+	}
+	if m.readinessProject != "" {
+		hint = "Esc/d back | Up/Down/PgUp/PgDn scroll | r refresh | q quit"
 	}
 	if m.reviewLoading || m.review != nil {
 		hint = "Review only | Enter confirms exact ID | Esc cancels"
@@ -633,6 +640,8 @@ func (m Model) View() string {
 	switch {
 	case m.reviewLoading || m.review != nil || m.jobPanel:
 		body = window(m.jobsPanel(width), m.offset, available)
+	case m.readinessProject != "":
+		body = window(m.readinessLines(width), m.offset, available)
 	case m.historyProject != "":
 		body = window(m.historyLines(width), m.offset, available)
 	case m.help:

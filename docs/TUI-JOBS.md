@@ -10,7 +10,9 @@ This separate mode invokes native manual file jobs. It does not load coordinator
 workflow enabled flags or maintenance windows. Use only a reviewed file-only
 configuration whose source paths exclude live database storage. Database,
 capture-required and recovery-only projects are blocked. An initialized repository
-and the configured Restic executable are required; this screen cannot initialize it.
+and the configured Restic executable are required to run jobs; this screen cannot
+initialize a repository. If tools are unavailable, the view opens in a blocked
+diagnostic session so you can inspect readiness, then fix issues and restart.
 
 1. Select a project and press `b` to review its ID, source count, destination,
    configuration fingerprint and notification policy. Inspect the configuration
@@ -101,3 +103,35 @@ The default is `CONTEXT UNKNOWN`: HomeVault never guesses from names or paths.
 These labels do not validate a configuration, prevent writes or change any job
 guard, confirmation, notification or destination. Review the exact configuration
 and repository before starting a job, even when the header says LAB.
+
+## Local readiness diagnostics
+
+Press `d` from the project list/details. The panel shows the exact configuration
+path, SHA256 fingerprint and destination, followed by bounded observations and
+next actions. `OBSERVED` means metadata was found; `ATTENTION` identifies a missing
+path/tool or credential mode issue; `BLOCKED` explains an unsupported action or
+unavailable engine; `NOT CHECKED` identifies untested properties. There is no
+aggregate "ready" certificate.
+
+Checks include executable lookup (never tool execution), source directory metadata
+(first 16 paths), credential file metadata/private mode bits, state/destination
+metadata and manual-job scope. Credential contents are never opened by diagnostics;
+no files, lock, write probe, cloud request, app pause or notification is created.
+Windows ACL privacy is explicitly untested. Unix mode bits do not prove ownership,
+ACL safety or effective read/write access. Sources are not walked; live databases
+cannot be detected reliably. Symlink targets are not inspected by these checks.
+
+A structurally valid configuration is still required at startup, including the
+existing credential path/privacy validation. Invalid/unreadable configuration
+continues to fail before the screen opens. Missing tools can now leave a blocked
+session open; local job history is then unavailable rather than reported absent.
+After installing tools or changing config, restart the view. Refresh does not
+rebuild an unavailable engine. These observations are informational: existing
+engine checks, locks, confirmations and capture restrictions still apply.
+
+Use arrows/Page Up/Page Down to scroll, `r` to reload local observations and
+Esc/`d` to return. Backup/Enter actions do nothing in this panel. On refresh
+failure, previous observations are hidden until a successful read. Repository
+initialization, key correctness, cloud access, free space, active locks, actual
+permissions and restore success require separate reviewed checks; they are not
+inferred from local metadata.

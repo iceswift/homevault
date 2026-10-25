@@ -8,6 +8,7 @@ Dates use `YYYY-MM-DD`; release history links point to the exact tag or comparis
 
 ### Added
 
+- Local readiness panel (`d`) in manual-job TUI: selected config/destination, executable lookup, bounded path/credential metadata and next actions. Missing tools keep diagnostics open with jobs blocked; no tool is run, credential content opened, write probe or cloud request made.
 - Read-only local attempt history inside `tui-jobs` (`h`), with newest-first deduplication, recorded durations, separate backup/check results and conservative refresh-error states.
 - Separate `tui-jobs` mode for explicitly configured file-only manual backup/check jobs, typed confirmation, recorded progress and cancellation cleanup. Configuration and previous-job guards run under the engine lock; database/capture/recovery scopes remain blocked.
 - Native `tui-status --plan FILE` local-record view with manual async refresh, explicit coordinator/legacy provenance, source/upload age separation and conservative Unknown states. It performs no engine actions, credential-file reads, cloud/service checks or state writes.

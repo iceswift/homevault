@@ -79,10 +79,11 @@ func NewWithTimeout(path string, timeout time.Duration) (*Backend, error) {
 		return nil, errors.New("manual-job configuration invalid or unreadable")
 	}
 	e, err := engine.New(cfg)
-	if err != nil {
-		return nil, errors.New("manual-job tools or configuration unavailable; use the CLI doctor separately")
+	var available jobEngine
+	if err == nil {
+		available = e
 	}
-	b := &Backend{cfg: cfg, path: path, digest: fingerprint, engine: e, timeout: timeout}
+	b := &Backend{cfg: cfg, path: path, digest: fingerprint, engine: available, timeout: timeout}
 	if err = b.unchanged(); err != nil {
 		return nil, err
 	}
@@ -114,11 +115,20 @@ func (b *Backend) Load() (statusdata.Snapshot, error) {
 	data := statusdata.Snapshot{ReadAt: time.Now().UTC(), Notifications: "Existing config policy; only after confirmed jobs"}
 	for _, p := range b.cfg.Projects {
 		row := statusdata.Project{ID: p.Name, Name: p.Name, ProjectName: p.Name, Kind: "Native file job", State: "unverified", BackupCheck: "no-record", Recovery: "Unknown - not inspected", Schedule: "Unknown - not inspected", Activation: "Manual only; not a workflow/timer gate", RecordScope: "Native engine job record", Attempt: "No local job record", Note: "Source age is unknown. This manual command does not read coordinator activation flags. This view does not inspect or enable schedules."}
-		state, err := b.engine.JobStatus(p.Name)
+		row.Readiness = b.readiness(p)
+		var state engine.JobStatus
+		err := errors.New("engine unavailable")
+		if b.engine != nil {
+			state, err = b.engine.JobStatus(p.Name)
+		}
 		if err != nil {
 			row.State = "unknown"
 			row.BackupCheck = "unknown"
 			row.Note = "Local job record unreadable; no backup absence is inferred."
+			if b.engine == nil {
+				row.State = "blocked"
+				row.Note = "Job tools or configuration unavailable; local history was not loaded. Open readiness (d) for diagnostics."
+			}
 		} else {
 			row.Uploaded = state.LastSuccess
 			row.HistoryKnown = true
@@ -184,6 +194,10 @@ func (b *Backend) Review(id string) (statusdata.JobReview, error) {
 	}
 	if reason := b.blocked(p); reason != "" {
 		view.Reason = reason
+		return view, nil
+	}
+	if b.engine == nil {
+		view.Reason = "Tools or configuration unavailable; open readiness (d), fix issues and restart."
 		return view, nil
 	}
 	previous, err := b.engine.JobStatus(id)

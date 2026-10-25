@@ -110,7 +110,8 @@ Use `homevault --config /absolute/reviewed-files.json tui-jobs` for file-only
 backup/check jobs with typed confirmation, recorded phases and cancellation.
 Backup/check, source freshness and recovery evidence are displayed separately.
 Use `--context lab` or `--context production` for an explicit operator label;
-otherwise context is Unknown. Press `h` to browse local attempt history.
+otherwise context is Unknown. Press `h` for local history or `d` for local
+readiness diagnostics and suggested fixes (metadata only, no cloud probe).
 This manual mode does not consume coordinator enabled flags/windows. Database and
 capture projects remain blocked. See [scope and controls](docs/TUI-JOBS.md) before
 using it. Not included in the published Preview.
