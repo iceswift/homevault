@@ -25,3 +25,7 @@ client_secret*.json
 *.pem
 .env
 .env.*
+
+# Local browser presentation checks.
+/output/playwright/
+/.playwright-cli/

@@ -18,3 +18,9 @@ It is not a desktop-window screenshot or evidence of a recovery test.
 When the TUI changes, recapture the view with generated data, review it for private
 identifiers, and update the plain text and image together. The caption and alt text
 must continue to distinguish synthetic preview content from operational evidence.
+
+## Banner
+
+`homevault-banner.svg` is a repository-native vector wordmark/header. It contains
+only static shapes and text, with no scripts, external assets or embedded fonts.
+It is presentation artwork, separate from the captured TUI and verification evidence.

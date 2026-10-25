@@ -1,49 +1,70 @@
-# HomeVault
+<p align="center">
+  <img src="docs/assets/homevault-banner.svg" alt="HomeVault — encrypted home-server backups with a terminal interface" width="100%">
+</p>
 
-**Encrypted home-server backups, with a terminal interface and a recovery-first workflow.**
+<p align="center">
+  <strong>Encrypted backups for your home server. Recovery you can verify.</strong>
+</p>
 
-[![CI](https://github.com/iceswift/homevault/actions/workflows/ci.yml/badge.svg)](https://github.com/iceswift/homevault/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+<p align="center">
+  <a href="https://github.com/iceswift/homevault/actions/workflows/ci.yml"><img src="https://github.com/iceswift/homevault/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <a href="https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.1"><img src="https://img.shields.io/badge/release-v0.1.0--preview.1-38bdf8" alt="Release v0.1.0-preview.1"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-94a3b8" alt="MIT license"></a>
+</p>
 
-HomeVault is an open-source Go CLI/TUI for backing up selected files and prepared
-application data. Restic provides encryption, snapshots and deduplication; rclone
-connects cloud storage such as Google Drive. HomeVault adds project configuration,
-job history, capture workflows and recovery checks around those tools.
+<p align="center">
+  <a href="https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.1"><strong>Download Linux Preview</strong></a>
+  &nbsp; · &nbsp; <a href="docs/RELEASING.md">Install &amp; verify</a>
+  &nbsp; · &nbsp; <a href="docs/QUICKSTART.md">Try the local demo</a>
+  &nbsp; · &nbsp; <a href="docs/ROADMAP.md">Roadmap</a>
+</p>
 
-**Early development · Ubuntu/Linux first.** Start with the local demo below.
-A successful backup is not proof that your application can recover.
+HomeVault is a Go CLI/TUI for backing up selected files and prepared application
+data. It brings project configuration, capture workflows, job history and recovery
+checks together around **Restic** and **rclone**, with local or Google Drive storage.
 
-**[Download Linux Preview v0.1.0-preview.1](https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.1)**
-· [Install and verify checksums](docs/RELEASING.md)
-· [Try the local demo](docs/QUICKSTART.md)
+> **Preview status:** Ubuntu/Linux amd64 is the tested runtime target. ARM64 is
+> cross-built; runtime remains unverified. A successful backup does not prove
+> application recovery. HomeVault does not create a bootable whole-server image.
 
-Linux amd64 has extracted-package restore tests. ARM64 is cross-built; runtime
-remains unverified. This is a prerelease, not a stable release.
+<p align="center">
+  <a href="#get-started">Get started</a> &nbsp; / &nbsp;
+  <a href="#capabilities">Capabilities</a> &nbsp; / &nbsp;
+  <a href="#verification">Verification</a> &nbsp; / &nbsp;
+  <a href="#documentation">Documentation</a> &nbsp; / &nbsp;
+  <a href="#contributing">Contributing</a>
+</p>
 
-## What using it looks like
+## A look inside
 
-![Actual HomeVault welcome screen with a synthetic project, keyboard shortcuts and getting-started guidance](docs/assets/tui-welcome.png)
+![HomeVault welcome screen showing the synthetic project, keyboard shortcuts and getting-started guidance](docs/assets/tui-welcome.png)
 
-Actual TUI output captured on Linux with generated data, rendered as a terminal
-image. [Plain-text capture and provenance](docs/assets/README.md). No real backup
-history, account identifiers or credentials are shown.
+<p align="center"><sub>Actual Linux TUI output with generated data, rendered as a terminal image.
+<a href="docs/assets/README.md">Plain-text capture &amp; provenance</a>.</sub></p>
 
-Press `b` to review a backup confirmation, then Enter to start or any other key to
-cancel. Capture-required applications use their reviewed workflow instead.
+| Select a project | Run a reviewed backup | Verify recovery |
+| --- | --- | --- |
+| Browse projects and read job history. | Confirm before starting; capture-required apps use their reviewed workflow. | Restore into a separate target and validate the files and application. |
+
+Press `b` to review backup confirmation, Enter to start, or another key to cancel.
 Opening the TUI does not enable schedules or delete snapshots.
 
-## Try it without a cloud account
+## Get started
 
-The [prebuilt-package guide](docs/RELEASING.md) covers download, checksum verification
-and running the bundled local demo without Go. You need Restic separately; the
-demo uses Bash and Python 3.11+. rclone is only needed for cloud repositories.
-No Docker, Google account, sudo or application data is needed for the demo once
-these dependencies are installed.
+**Begin with sample data. No cloud account or Docker needed.**
+
+1. **[Download the Preview](https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.1)** — choose your Linux archive.
+2. **[Verify and run](docs/RELEASING.md)** — check its checksum, then run the bundled local demo.
+3. **Confirm the restored bytes match** before [configuring real data](docs/ONBOARDING.md) or [connecting Drive](docs/DRIVE-OAUTH.md).
+
+The executable is prebuilt; you do not need Go. Install Restic separately. The
+demo uses Bash and Python 3.11+; rclone is only needed for cloud storage. No sudo
+or application data is needed once those dependencies are installed.
 
 <details>
-<summary>Prefer to build from source?</summary>
+<summary><strong>Build from source instead</strong></summary>
 
-You also need Git and Go 1.24.5+:
+Requires Git, Go 1.24.5+ and Restic for the local walkthrough:
 
 ```sh
 git clone https://github.com/iceswift/homevault.git
@@ -52,39 +73,40 @@ go build -trimpath -o bin/homevault ./cmd/homevault
 ./bin/homevault version
 ```
 
-Follow the [copy-and-paste local Quick Start](docs/QUICKSTART.md) to create sample
-data, back it up, restore it into a separate directory and compare the bytes.
-The guide includes expected results and troubleshooting.
+Continue with the [copy-and-paste Quick Start](docs/QUICKSTART.md), including
+expected results, byte-verified restore and troubleshooting.
 
 </details>
 
-Complete the sample restore before adding real data or setting up
-[Google Drive](docs/DRIVE-OAUTH.md). Then [prepare a real project](docs/ONBOARDING.md).
+## Capabilities
 
-## Choose the right scope
+| Available | Experimental | Outside current scope |
+| --- | --- | --- |
+| Encrypted file backup, snapshots and guarded restore | Coordinated app captures and database preparation | Bootable disk images and complete host reconstruction |
+| CLI/TUI, confirmation and recorded job history | Workflow templates, alerts, retention and recovery kits | Automatic production cutover |
+| Local repositories and Google Drive through rclone | Selected application recovery rehearsals | Validated Windows deployment and ARM64 runtime |
 
-HomeVault suits Linux home-server owners comfortable with a terminal who want
-selected files or application data backed up to a local repository or cloud
-storage. It does not create a bootable disk image, discover every Docker volume,
-or automatically reconstruct your operating system and public routes.
+<details>
+<summary><strong>Full feature status and boundaries</strong></summary>
 
-| Capability | Current status |
+| Capability | Status / limits |
 | --- | --- |
 | Local encrypted backup, snapshots, check and guarded restore | Implemented; generated-data integration tests |
 | CLI/TUI, backup confirmation, job history and detail scrolling | Implemented |
-| Google Drive through rclone | Implemented; manual OAuth client setup; operator cloud restore evidence |
+| Google Drive through rclone | Implemented; manual OAuth client setup and separate operator cloud-restore evidence |
 | SQLite online export / PostgreSQL custom dump | Experimental; DB and media need coordinated capture |
-| Pinned container capture and prepared multi-project workflows | Experimental; explicit configuration and activation |
-| Discord alerts and systemd templates | Experimental; installed/tested per deployment, no automatic activation |
-| Retention preview, manual apply and separate prune | Experimental; explicit review and confirmation |
+| Pinned container capture and prepared workflows | Experimental; explicit configuration and activation |
+| Discord alerts and systemd templates | Experimental; installation/preflight does not prove successful scheduled execution |
+| Retention preview, reviewed apply and separate no-repack prune | Experimental; explicit review/confirmation; no automatic deletion |
 | Recovery kits, image catalogs and isolated app recovery | Experimental; selected operator drills, not complete host recovery |
-| Automatic full-machine restore or production cutover | Not implemented |
 
-Linux amd64 is the operator-tested deployment target. Linux arm64 packages are
-cross-built but runtime compatibility is unverified. Windows builds/unit tests
-work; Windows deployment and restore are not supported as a validated target.
+Windows builds/unit tests work, but deployment and restore are not validated.
+Linux amd64 is the operator-tested target. ARM64 packages are cross-built only.
+HomeVault does not discover every Docker volume or reconstruct your OS/routes.
 
-## How the pieces fit
+</details>
+
+### How it works
 
 ```text
 Selected files / coordinated application exports
@@ -96,57 +118,47 @@ Selected files / coordinated application exports
       Local storage OR rclone → Google Drive
 ```
 
-There is no always-running HomeVault daemon or required public web service.
-Optional desktop OAuth uses a temporary loopback callback. Optional systemd jobs
-run independently of an open SSH connection. HomeVault does not read your open
-browser to choose a Google account.
+No always-running HomeVault daemon or public web server is required. Optional
+systemd jobs run independently of SSH. Desktop OAuth uses a temporary loopback
+callback; HomeVault does not choose a Google account from your open browser.
 
-## What has actually been verified?
+## Verification
 
-Automated CI covers Go race tests/static analysis, template syntax and real local
-encrypted Restic fixtures. These tests use generated data, not production secrets.
-See [testing](docs/TESTING.md) and the [CI workflow](.github/workflows/ci.yml).
+| Evidence | What it covers | Boundary |
+| --- | --- | --- |
+| [Automated CI](https://github.com/iceswift/homevault/actions/workflows/ci.yml) | Go race tests/vet, generated-data Restic fixtures, public walkthrough and extracted-package amd64 backup/restore | No production credentials; not live Drive consent or arbitrary app recovery |
+| [Operator VM drill](docs/VM-RECOVERY-DRILL.md) | Selected Drive snapshots; SQLite, PostgreSQL, JSON-state and static-site recovery | VM on the original physical server; not physical disk loss or complete host rebuild |
+| [Operator validation](docs/OPERATOR-VALIDATION.md) | Key custody, selected captures and manual systemd preflight/monitor checks | Deployment-specific; no implied active schedule |
 
-One owner-operated deployment also restored selected encrypted Google Drive
-snapshots and rehearsed SQLite, PostgreSQL, JSON-state and static-site recovery
-in an isolated Ubuntu VM. That VM ran on the original physical server: this was
-not a physical disk-loss test, a full host rebuild or an independent-user trial.
-See the [VM drill and its limits](docs/VM-RECOVERY-DRILL.md) and
-[operator validation](docs/OPERATOR-VALIDATION.md).
+Details and skipped checks live in [testing](docs/TESTING.md). Preview status is
+not a security audit. Schedules and retention depend on each deployment.
 
-Schedules and retention depend on each deployment. Prepared templates and a
-successful manual test do not mean an automatic schedule is active.
+### Before real data
 
-## Before backing up real data
-
-- Keep the original repository key recoverable outside the server. Losing it loses access to encrypted backups.
-- Prepare databases correctly; ordinary file copies of a running database are not a consistent backup.
-- Restore into a new target and validate the application, not only a repository check.
-- Keep passwords, OAuth tokens, webhook URLs and private configuration out of Git and issues.
+- Keep the **original repository key independently recoverable** outside the server.
+- Prepare databases consistently; ordinary copies of a running database are insufficient.
+- Restore into a fresh target and validate the application as well as the files.
+- Keep keys, OAuth tokens, webhook URLs and private config out of Git and issues.
 
 ## Documentation
 
-| Goal | Guide |
-| --- | --- |
-| Complete a local backup and verified restore | [Quick Start](docs/QUICKSTART.md) |
-| Configure a real project | [Onboarding](docs/ONBOARDING.md) |
-| Authorize Drive | [Drive OAuth](docs/DRIVE-OAUTH.md) |
-| Prepare databases / container captures | [Databases](docs/DATABASE-BACKUPS.md) · [Fresh capture](docs/FRESH-CAPTURE.md) |
-| Schedule and monitor | [Jobs and alerts](docs/SCHEDULING-ALERTS.md) · [Prepared workflows](docs/PLANNED-WORKFLOWS.md) |
-| Review deletion and storage reclamation | [Retention](docs/RETENTION.md) · [Prune](docs/PRUNE.md) |
-| Recover on another machine | [Recovery kit](docs/RECOVERY-KIT.md) · [Rebuild runbook](docs/REBUILD.md) |
-| Develop / inspect plans | [Testing](docs/TESTING.md) · [Roadmap](docs/ROADMAP.md) |
+| Start | Operate | Recover |
+| --- | --- | --- |
+| [Local Quick Start](docs/QUICKSTART.md) | [Jobs & alerts](docs/SCHEDULING-ALERTS.md) | [Recovery kit](docs/RECOVERY-KIT.md) |
+| [Installation & checksums](docs/RELEASING.md) | [Prepared workflows](docs/PLANNED-WORKFLOWS.md) | [Rebuild runbook](docs/REBUILD.md) |
+| [Project onboarding](docs/ONBOARDING.md) | [Databases](docs/DATABASE-BACKUPS.md) · [Fresh capture](docs/FRESH-CAPTURE.md) | [Application rehearsal](docs/RECOVERY-REHEARSAL.md) |
+| [Google Drive OAuth](docs/DRIVE-OAUTH.md) | [Retention](docs/RETENTION.md) · [Prune](docs/PRUNE.md) | [Verification evidence](docs/VM-RECOVERY-DRILL.md) |
 
-## Contribute and get help
+## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, test commands and PR scope.
-Use the [issue forms](https://github.com/iceswift/homevault/issues/new/choose) for
-bugs, feature/UX requests and usage questions. Small docs fixes are welcome.
+Documentation fixes, UX feedback and focused code changes are welcome.
+[Contribution guide](CONTRIBUTING.md) · [Issue forms](https://github.com/iceswift/homevault/issues/new/choose) · [Roadmap](docs/ROADMAP.md)
 
-Report vulnerabilities through the private channel in [SECURITY.md](SECURITY.md).
-Never put keys, OAuth responses, webhook URLs, private config or real backup data
-in issues, PRs or screenshots. Preview status does not imply a security audit.
+For vulnerabilities, use the **private channel** in [SECURITY.md](SECURITY.md).
+Never attach real backup data, credentials or private configuration to reports.
 
-[MIT License](LICENSE). Built around [Restic](https://restic.net/) and
-[rclone](https://rclone.org/); their encryption and transport work is credited to
-those projects. HomeVault is an independent project.
+---
+
+<p align="center">
+  <sub>MIT licensed · Built around <a href="https://restic.net/">Restic</a> and <a href="https://rclone.org/">rclone</a> · Independent open-source project</sub>
+</p>

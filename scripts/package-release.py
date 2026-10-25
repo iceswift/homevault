@@ -16,7 +16,7 @@ DOCS = ['QUICKSTART.md', 'ONBOARDING.md', 'DATABASE-BACKUPS.md', 'FRESH-CAPTURE.
         'RETENTION.md', 'PRUNE.md', 'DRIVE-OAUTH.md', 'GO-OAUTH-LICENSE.txt',
         'RECOVERY-KIT.md', 'TESTING.md', 'RELEASING.md', 'VM-RECOVERY-DRILL.md',
         'OPERATOR-VALIDATION.md', 'PLANNED-WORKFLOWS.md', 'REBUILD.md', 'ROADMAP.md',
-        'RECOVERY-FILES.md', 'assets/README.md', 'assets/tui-welcome.txt', 'assets/tui-welcome.png']
+        'RECOVERY-FILES.md', 'assets/README.md', 'assets/tui-welcome.txt', 'assets/tui-welcome.png', 'assets/homevault-banner.svg']
 
 
 def add(tar, name, data, mode=0o644):
