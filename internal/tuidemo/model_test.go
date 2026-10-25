@@ -191,3 +191,18 @@ func TestTableHeaderAlignsWithValues(t *testing.T) {
 		t.Fatal("headers and values are misaligned")
 	}
 }
+
+func TestPastedSearchCannotEmitTerminalControls(t *testing.T) {
+	m, _ := New(Options{Width: 60, Height: 26, NoColor: true})
+	m = key(t, m, "/")
+	m = key(t, m, "notes\x1b[31m\n\r\t\x00"+strings.Repeat("x", 100))
+	if strings.ContainsAny(m.query, "\x1b\n\r\t\x00") || len([]rune(m.query)) > 80 {
+		t.Fatal("unsafe or oversized pasted filter")
+	}
+	if strings.Contains(m.View(), "\x1b") {
+		t.Fatal("search emitted a terminal escape")
+	}
+	if !m.searching {
+		t.Fatal("pasted control characters triggered navigation")
+	}
+}

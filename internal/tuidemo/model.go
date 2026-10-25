@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/ansi"
@@ -128,8 +129,14 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 					m.query = string(r[:len(r)-1])
 				}
 			default:
-				if msg.Type == tea.KeyRunes && len([]rune(m.query))+len(msg.Runes) <= 80 {
-					m.query += string(msg.Runes)
+				if msg.Type == tea.KeyRunes {
+					runes := []rune(m.query)
+					for _, r := range msg.Runes {
+						if len(runes) < 80 && unicode.IsPrint(r) {
+							runes = append(runes, r)
+						}
+					}
+					m.query = string(runes)
 				}
 			}
 			m.selected = 0
