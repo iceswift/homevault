@@ -1,6 +1,8 @@
 """Keep the published walkthrough identical to the Linux CI smoke script."""
 from pathlib import Path
 import re
+import runpy
+import subprocess
 
 root = Path(__file__).resolve().parents[1]
 text = (root / "docs/QUICKSTART.md").read_text(encoding="utf-8")
@@ -16,3 +18,12 @@ for name in ["README.md", "docs/QUICKSTART.md", "docs/ONBOARDING.md"]:
             if not (path.parent / target).exists():
                 raise SystemExit(f"FAIL broken local link in {name}: {target}")
 print("PASS published Quick Start matches tested script; entry-point links exist")
+
+# Local ignored operator notes must never become release inputs accidentally.
+tracked = set(subprocess.check_output(
+    ["git", "ls-files", "--", "docs"], cwd=root, text=True).splitlines())
+package_docs = runpy.run_path(str(root / "scripts/package-release.py"))["DOCS"]
+for name in package_docs:
+    if "docs/" + name not in tracked:
+        raise SystemExit("FAIL package input is not a tracked public document: " + name)
+print("PASS package document allowlist contains only tracked public files")
