@@ -32,6 +32,7 @@ checks together around **Restic** and **rclone**, with local or Google Drive sto
   <a href="#capabilities">Capabilities</a> &nbsp; / &nbsp;
   <a href="#verification">Verification</a> &nbsp; / &nbsp;
   <a href="#documentation">Documentation</a> &nbsp; / &nbsp;
+  <a href="#faq">FAQ</a> &nbsp; / &nbsp;
   <a href="#contributing">Contributing</a>
 </p>
 
@@ -148,6 +149,45 @@ not a security audit. Schedules and retention depend on each deployment.
 | [Installation & checksums](docs/RELEASING.md) | [Prepared workflows](docs/PLANNED-WORKFLOWS.md) | [Rebuild runbook](docs/REBUILD.md) |
 | [Project onboarding](docs/ONBOARDING.md) | [Databases](docs/DATABASE-BACKUPS.md) · [Fresh capture](docs/FRESH-CAPTURE.md) | [Application rehearsal](docs/RECOVERY-REHEARSAL.md) |
 | [Google Drive OAuth](docs/DRIVE-OAUTH.md) | [Retention](docs/RETENTION.md) · [Prune](docs/PRUNE.md) | [Verification evidence](docs/VM-RECOVERY-DRILL.md) |
+
+## FAQ
+
+<details>
+<summary><strong>Does this back up my entire server?</strong></summary>
+
+HomeVault backs up selected files and prepared application data. It does not make
+a bootable disk image or automatically reconstruct your operating system and services.
+
+</details>
+
+<details>
+<summary><strong>Do I need another disk or a Google account?</strong></summary>
+
+Cloud backups do not require a second disk in the source server, but captures,
+caches and restores still need local space. Google Drive is optional; the local
+demo works without a cloud account.
+
+</details>
+
+<details>
+<summary><strong>What happens if I lose the repository key?</strong></summary>
+
+If every recoverable copy is lost, HomeVault cannot decrypt the repository for you.
+Keep the original key independently recoverable outside the server and test recovery.
+
+</details>
+
+<details>
+<summary><strong>Why use HomeVault instead of Restic directly?</strong></summary>
+
+HomeVault adds project configuration, a TUI, job history and reviewed capture/recovery
+workflows around Restic and rclone. If your existing scripts meet your needs, you
+may not need HomeVault. No performance or reliability superiority is claimed.
+
+</details>
+
+[Read all FAQs](docs/FAQ.md) for database consistency, schedules, platform support,
+retention and what a successful backup actually proves.
 
 ## Contributing
 
