@@ -103,6 +103,17 @@ do not mean cloud backups are absent. This mode is not in the published Preview.
 
 </details>
 
+<details>
+<summary><strong>Run reviewed manual file jobs (current main)</strong></summary>
+
+Use `homevault --config /absolute/reviewed-files.json tui-jobs` for file-only
+backup/check jobs with typed confirmation, recorded phases and cancellation.
+This manual mode does not consume coordinator enabled flags/windows. Database and
+capture projects remain blocked. See [scope and controls](docs/TUI-JOBS.md) before
+using it. Not included in the published Preview.
+
+</details>
+
 ## Capabilities
 
 | Available | Experimental | Outside current scope |

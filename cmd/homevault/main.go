@@ -41,7 +41,7 @@ func run(ctx context.Context, args []string) error {
 		fmt.Fprintln(fs.Output(), "Reviewed retention: retention-save PROJECT NEW_PLAN.json [policy flags]; retention-apply PROJECT PLAN.json --preserve VERIFIED_KEPT_FULL_ID --confirm (removes snapshot records; no prune)")
 		fmt.Fprintln(fs.Output(), "Project setup: setup NEW_DIRECTORY --project NAME --source ABS_DIRECTORY --repository REPOSITORY --password-file EXISTING_KEY [--sqlite ABS_DB] [--capture-required]")
 		fmt.Fprintln(fs.Output(), "Retention preview: retention-plan PROJECT [--keep-daily 7] [--keep-weekly 4] [--keep-monthly 12] (no deletion)")
-		fmt.Fprintln(fs.Output(), "Usage: homevault [--config FILE] [--timeout 2h] COMMAND\nCommands: version, demo-setup NEW_DIRECTORY, doctor, init, backup PROJECT, job-backup PROJECT, capture-check PROJECT PLAN.json, capture-backup PROJECT PLAN.json --confirm, status PROJECT, monitor PROJECT --max-age 36h, notify-test PROJECT, snapshots PROJECT, check, restore PROJECT FULL_SNAPSHOT_ID NEW_TARGET --confirm, rehearse PROJECT FULL_SNAPSHOT_ID NEW_TARGET PLAN.json --confirm, resume-paused GUARD_FILE [--force], tui, tui-demo (synthetic design preview; no config or backup tools required), tui-status --plan FILE (read-only local records)")
+		fmt.Fprintln(fs.Output(), "Usage: homevault [--config FILE] [--timeout 2h] COMMAND\nCommands: version, demo-setup NEW_DIRECTORY, doctor, init, backup PROJECT, job-backup PROJECT, capture-check PROJECT PLAN.json, capture-backup PROJECT PLAN.json --confirm, status PROJECT, monitor PROJECT --max-age 36h, notify-test PROJECT, snapshots PROJECT, check, restore PROJECT FULL_SNAPSHOT_ID NEW_TARGET --confirm, rehearse PROJECT FULL_SNAPSHOT_ID NEW_TARGET PLAN.json --confirm, resume-paused GUARD_FILE [--force], tui, tui-demo (synthetic design preview; no config or backup tools required), tui-status --plan FILE (read-only local records), tui-jobs (explicit --config; reviewed manual file jobs)")
 	}
 	if err := fs.Parse(args); err != nil {
 		return err
@@ -54,6 +54,15 @@ func run(ctx context.Context, args []string) error {
 	if a[0] == "version" {
 		fmt.Println("homevault", version)
 		return nil
+	}
+	if a[0] == "tui-jobs" {
+		explicit := ""
+		fs.Visit(func(f *flag.Flag) {
+			if f.Name == "config" {
+				explicit = *file
+			}
+		})
+		return runTUIJobs(ctx, explicit, *timeout, a[1:])
 	}
 	if a[0] == "tui-status" {
 		return runTUIStatus(ctx, a[1:])

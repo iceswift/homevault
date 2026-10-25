@@ -10,6 +10,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/ansi"
+	"homevault/internal/statusdata"
 )
 
 var clock = time.Date(2026, 10, 25, 6, 0, 0, 0, time.UTC)
@@ -46,6 +47,14 @@ type Model struct {
 	location                                 *time.Location
 	loader                                   Loader
 	notifications                            string
+	jobs                                     Jobs
+	review                                   *statusdata.JobReview
+	reviewLoading                            bool
+	reviewGeneration                         uint64
+	typed                                    string
+	jobActive, jobPanel, quitAfterJob        bool
+	jobID, jobPhase, jobState, jobMessage    string
+	events                                   jobEvents
 }
 
 func newLayout(options Options) (Model, error) {
@@ -131,6 +140,42 @@ func (m *Model) clamp() {
 }
 func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := message.(type) {
+	case jobReviewResult:
+		if !m.reviewLoading || msg.generation != m.reviewGeneration {
+			return m, nil
+		}
+		m.reviewLoading = false
+		if msg.err != nil {
+			m.jobs.Discard()
+			m.notice = "Review unavailable; refresh/restart and inspect configuration separately."
+		} else {
+			r := msg.review
+			r.Destination = cleanDisplay(r.Destination)
+			r.Reason = cleanDisplay(r.Reason)
+			m.review = &r
+			m.typed = ""
+		}
+		return m, nil
+	case jobEventMsg:
+		if !m.jobActive {
+			return m, nil
+		}
+		if msg.event.Phase == "backup" || msg.event.Phase == "check" || msg.event.Phase == "starting" {
+			m.jobPhase = msg.event.Phase
+		}
+		m.jobMessage = cleanDisplay(msg.event.Message)
+		if !msg.event.Done {
+			return m, waitJob(m.events)
+		}
+		m.jobActive = false
+		m.jobState = msg.event.State
+		m.jobPhase = "finished"
+		if m.quitAfterJob {
+			return m, tea.Quit
+		}
+		m.loading = true
+		return m, m.refreshCmd()
+
 	case refreshResult:
 		if !m.live || !m.loading {
 			return m, nil
@@ -142,6 +187,9 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.readFailed = false
 			m.notice = "Local records refreshed. No cloud or service checks were made."
+			if m.jobs != nil {
+				m.notice = "Local job records refreshed."
+			}
 		}
 		m.clamp()
 		return m, nil
@@ -150,6 +198,9 @@ func (m Model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = max(1, msg.Height)
 		m.offset = 0
 	case tea.KeyMsg:
+		if handled, cmd := m.handleJobs(msg); handled {
+			return m, cmd
+		}
 		key := msg.String()
 		if key == "ctrl+c" {
 			return m, tea.Quit
@@ -315,6 +366,8 @@ func (m Model) age(value time.Time) string {
 func (m Model) state(p project) string {
 	labels := map[string]string{"passed": "Passed", "stale": "Stale source", "failed": "Check failed", "inactive": "Not activated"}
 	colors := map[string]string{"passed": "38;5;114", "stale": "38;5;221", "failed": "38;5;210", "inactive": "38;5;245"}
+	labels["blocked"] = "Blocked"
+	colors["blocked"] = "38;5;221"
 	labels["unknown"] = "Unknown"
 	labels["unverified"] = "Unverified"
 	labels["running"] = "Running record"
@@ -422,6 +475,9 @@ func window(lines []string, offset, height int) []string {
 	return append(result, fmt.Sprintf("Lines %d-%d/%d | PgUp/PgDn", start+1, min(len(lines), start+content), len(lines)))
 }
 func (m Model) helpLines(width int) []string {
+	if m.jobs != nil {
+		return m.jobsHelp(width)
+	}
 	if m.live {
 		return m.liveHelp(width)
 	}
@@ -434,6 +490,9 @@ func (m Model) layout() (head, footer []string, available int) {
 	if m.live {
 		head = []string{m.accent("HOMEVAULT") + m.muted("  /  LOCAL RECORDS - READ ONLY"), m.muted("Ages at last read; no live checks"), m.line(width)}
 	}
+	if m.jobs != nil {
+		head = []string{m.accent("HOMEVAULT") + m.muted(" / MANUAL FILE JOBS"), m.muted("b reviews a job; typed confirmation required"), m.line(width)}
+	}
 	tabs := []string{"[1] Overview", "[2] Projects"}
 	tabs[m.page] = m.accent(tabs[m.page])
 	head = append(head, strings.Join(tabs, "    "), "")
@@ -442,7 +501,7 @@ func (m Model) layout() (head, footer []string, available int) {
 	} else if m.query != "" {
 		head = append(head, m.wrap("Filter: "+m.query, width)...)
 	}
-	if m.page == 0 && !m.details && !m.help {
+	if m.page == 0 && !m.details && !m.help && !m.reviewLoading && m.review == nil && !m.jobPanel {
 		if m.live {
 			head = append(head, m.wrap(m.summary(), width)...)
 		} else if width < 80 {
@@ -460,7 +519,7 @@ func (m Model) layout() (head, footer []string, available int) {
 		}
 		head = append(head, m.wrap(m.ink(label, "38;5;221"), width)...)
 	}
-	if m.notice != "" {
+	if m.notice != "" && m.review == nil {
 		head = append(head, m.wrap(m.notice, width)...)
 	}
 	head = append(head, "")
@@ -477,11 +536,34 @@ func (m Model) layout() (head, footer []string, available int) {
 	if m.live && !m.searching && !m.help {
 		hint += " | r refresh"
 	}
-	footer = append([]string{m.muted(m.line(width))}, m.wrap(hint, width)...)
+	if m.jobs != nil {
+		hint = "Enter details | b review | / search | r refresh | ? help | q quit"
+	}
+	if m.reviewLoading || m.review != nil {
+		hint = "Review only | Enter confirms exact ID | Esc cancels"
+	}
+	if m.jobPanel {
+		if m.jobActive {
+			hint = "x cancel | q cancel, wait, quit"
+		} else {
+			hint = "Enter/Esc back | q quit"
+		}
+	}
+	footer = []string{m.muted(m.line(width))}
+	if m.review != nil && m.review.Allowed {
+		footer = append(footer, m.wrap("Confirm "+m.review.ID+": "+m.typed+"_", width)...)
+		if m.notice != "" {
+			hint = "ID must match exactly | Enter confirm | Esc cancel"
+		}
+	}
+	footer = append(footer, m.wrap(hint, width)...)
 	if m.live {
 		label := "LOCAL RECORDS | last read " + m.now.In(m.location).Format("02 Jan 2006 15:04 MST")
 		if width < 80 {
 			label = "READ ONLY | read " + m.now.In(m.location).Format("02 Jan 15:04 MST")
+		}
+		if m.jobs != nil {
+			label = "MANUAL JOBS | last read " + m.now.In(m.location).Format("02 Jan 15:04 MST")
 		}
 		footer = append(footer, m.muted(label))
 	} else {
@@ -498,7 +580,15 @@ func (m Model) View() string {
 		if m.live {
 			title = "HOMEVAULT READ ONLY"
 		}
+		if m.jobs != nil {
+			title = "MANUAL FILE JOBS"
+		}
 		lines := []string{title, "Resize to at least 40x18", "q / Ctrl+C: quit"}
+		if m.jobActive {
+			lines = []string{title, "Job active; x cancels", "q cancels, waits, quits"}
+		} else if m.reviewLoading || m.review != nil {
+			lines = []string{title, "Resize before confirming", "Esc cancels; Ctrl+C quits"}
+		}
 		if len(lines) > height {
 			lines = lines[:height]
 		}
@@ -511,6 +601,8 @@ func (m Model) View() string {
 	projects := m.filtered()
 	var body []string
 	switch {
+	case m.reviewLoading || m.review != nil || m.jobPanel:
+		body = window(m.jobsPanel(width), m.offset, available)
 	case m.help:
 		body = window(m.helpLines(width), m.offset, available)
 	case m.details && len(projects) > 0:

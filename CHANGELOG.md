@@ -8,6 +8,7 @@ Dates use `YYYY-MM-DD`; release history links point to the exact tag or comparis
 
 ### Added
 
+- Separate `tui-jobs` mode for explicitly configured file-only manual backup/check jobs, typed confirmation, recorded progress and cancellation cleanup. Configuration and previous-job guards run under the engine lock; database/capture/recovery scopes remain blocked.
 - Native `tui-status --plan FILE` local-record view with manual async refresh, explicit coordinator/legacy provenance, source/upload age separation and conservative Unknown states. It performs no engine actions, credential-file reads, cloud/service checks or state writes.
 - Isolated `tui-demo` design prototype with mock Overview/Projects/details, filtering, responsive layouts, ASCII/monochrome support and deterministic frame rendering. It never loads live config or starts backup operations.
 - Contributor guide, security policy, private vulnerability reporting and structured issue/PR templates.
@@ -25,7 +26,7 @@ Dates use `YYYY-MM-DD`; release history links point to the exact tag or comparis
 ### Upgrade notes
 
 - These changes are on main and subsequent CI artifacts; they are **not** inside `v0.1.0-preview.1`.
-- New display-only `tui-demo` and read-only `tui-status` commands are available on main. The existing live CLI/TUI, engine behavior, configuration schemas and Go dependencies are unchanged; no application-data migration is introduced.
+- New display-only `tui-demo` and read-only `tui-status` commands are available on main. The existing live CLI/TUI entry points, configuration schemas and Go dependencies are unchanged; a separate guarded engine entry point supports reviewed file jobs; no application-data migration is introduced.
 - These documentation/packaging updates do not enable timers, change repository keys, activate retention or update a running server automatically.
 
 ## [v0.1.0-preview.1] - 2026-10-25

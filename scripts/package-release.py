@@ -11,7 +11,7 @@ import subprocess
 import tarfile
 
 ROOT = Path(__file__).resolve().parents[1]
-DOCS = ['TUI-STATUS.md', 'TUI-PROTOTYPE.md', 'FAQ.md', 'QUICKSTART.md', 'ONBOARDING.md', 'DATABASE-BACKUPS.md', 'FRESH-CAPTURE.md',
+DOCS = ['TUI-JOBS.md', 'TUI-STATUS.md', 'TUI-PROTOTYPE.md', 'FAQ.md', 'QUICKSTART.md', 'ONBOARDING.md', 'DATABASE-BACKUPS.md', 'FRESH-CAPTURE.md',
         'RECOVERY-REHEARSAL.md', 'POSTGRES-RECOVERY.md', 'SCHEDULING-ALERTS.md',
         'RETENTION.md', 'PRUNE.md', 'DRIVE-OAUTH.md', 'GO-OAUTH-LICENSE.txt',
         'RECOVERY-KIT.md', 'TESTING.md', 'RELEASING.md', 'VM-RECOVERY-DRILL.md',

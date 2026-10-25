@@ -166,7 +166,24 @@ func (e *Engine) RunBackupJob(ctx context.Context, project string) error {
 
 type jobPreparation func(context.Context, config.Project) (config.Project, func() error, error)
 
+// RunReviewedFileJob adds a frontend review fence without weakening ordinary CLI
+// behavior. The precondition must be read-only and must not call engine actions.
+func (e *Engine) RunReviewedFileJob(ctx context.Context, project, expectedID string, precondition func() error) error {
+	p, err := e.cfg.Project(project)
+	if err != nil {
+		return err
+	}
+	if len(p.Databases) > 0 {
+		return errors.New("reviewed UI supports file-only projects")
+	}
+	return e.runJob(ctx, project, nil, &expectedID, precondition)
+}
+
 func (e *Engine) runBackupJob(ctx context.Context, project string, prepare jobPreparation) error {
+	return e.runJob(ctx, project, prepare, nil, nil)
+}
+
+func (e *Engine) runJob(ctx context.Context, project string, prepare jobPreparation, expectedID *string, precondition func() error) error {
 	if e.cfg.RecoveryOnly {
 		return errors.New("recovery-only configuration refuses backup/capture jobs")
 	}
@@ -177,10 +194,24 @@ func (e *Engine) runBackupJob(ctx context.Context, project string, prepare jobPr
 	if p.CaptureRequired && prepare == nil {
 		return errors.New("project requires capture-backup; ordinary job-backup refused")
 	}
+	if precondition != nil {
+		if err := precondition(); err != nil {
+			return err
+		}
+	}
+	started := false
 	jobErr := e.withLock(ctx, func() (result error) {
 		state, err := e.JobStatus(project)
 		if err != nil {
 			return err
+		}
+		if expectedID != nil && (state.Latest.ID != *expectedID || state.Latest.Status == "running") {
+			return errors.New("reviewed job record changed or is running")
+		}
+		if precondition != nil {
+			if err := precondition(); err != nil {
+				return err
+			}
 		}
 		var nonce [12]byte
 		if _, err = rand.Read(nonce[:]); err != nil {
@@ -194,6 +225,7 @@ func (e *Engine) runBackupJob(ctx context.Context, project string, prepare jobPr
 		if err = writeState(e.jobPath(project), state); err != nil {
 			return err
 		}
+		started = true
 		defer func() {
 			attempt.Finished = time.Now().UTC()
 			attempt.Status = "failed"
@@ -248,6 +280,10 @@ func (e *Engine) runBackupJob(ctx context.Context, project string, prepare jobPr
 		attempt.CheckPassed = true
 		return nil
 	})
+	// A refused reviewed request must not send alerts or fabricate an attempt.
+	if expectedID != nil && !started {
+		return jobErr
+	}
 	// Notify after releasing the operation lock. Cancellation still allows a
 	// bounded failure notification; delivery failure never advances LastSuccess.
 	notificationCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

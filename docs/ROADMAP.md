@@ -23,7 +23,7 @@ restore testing for each deployment.
 
 | Work | Current state | Completion evidence needed |
 | --- | --- | --- |
-| TUI redesign | [Mock prototype](TUI-PROTOTYPE.md) and separate [read-only local-record view](TUI-STATUS.md) available on main | Independent UX feedback; cloud/scheduler/recovery inspection and explicit actions require separate work |
+| TUI redesign | [Mock prototype](TUI-PROTOTYPE.md) and separate [read-only local-record view](TUI-STATUS.md) plus [reviewed manual file jobs](TUI-JOBS.md) available on main | Independent UX feedback; coordinator/database actions and cloud/scheduler/recovery inspection require separate work |
 | Independent onboarding trial | Documentation and local demo are ready; external-user trial pending | Another person follows the published package guide and completes byte-verified restore; record friction and fixes |
 | Operational workflow readiness | Four operator workflows have passed systemd preflight and a disabled monitor run | Reviewed cleanup policy, maintenance windows, one real coordinated cycle and suite alert verification before timers |
 | Recovery coverage review | Selected app/config/image backups and VM drill completed | Close host inventory gaps and document what must be recreated manually; keep scope tied to tested evidence |

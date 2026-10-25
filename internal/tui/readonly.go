@@ -70,7 +70,7 @@ func (m *Model) applyData(data statusdata.Snapshot) error {
 		ids[row.ID] = true
 		state := row.State
 		switch state {
-		case "passed", "stale", "failed", "inactive", "running", "unknown", "unverified":
+		case "passed", "stale", "failed", "inactive", "running", "unknown", "unverified", "blocked":
 		default:
 			state = "unknown"
 		}
@@ -97,10 +97,13 @@ func (m Model) summary() string {
 		counts[state]++
 	}
 	values := []string{}
-	for _, state := range []string{"passed", "stale", "failed", "running", "inactive", "unverified", "unknown"} {
+	for _, state := range []string{"passed", "stale", "failed", "running", "inactive", "unverified", "unknown", "blocked"} {
 		if counts[state] > 0 {
 			values = append(values, fmt.Sprintf("%d %s", counts[state], state))
 		}
+	}
+	if m.jobs != nil {
+		return fmt.Sprintf("LOCAL JOB RECORDS %d projects | %s", len(m.projects), strings.Join(values, " / "))
 	}
 	return fmt.Sprintf("LOCAL RECORDS  %d workflows | %s", len(m.projects), strings.Join(values, " / "))
 }
