@@ -1,105 +1,146 @@
 # HomeVault
 
-A small, open-source Go CLI/TUI that orchestrates encrypted Restic backups. No public web service or always-running HomeVault daemon; explicit desktop OAuth temporarily uses a loopback-only callback. Early development software: use generated fixtures first, keep independent backups, and prove restore before trusting it with an application.
+**Encrypted home-server backups, with a terminal interface and a recovery-first workflow.**
 
-## Implemented scope
+[![CI](https://github.com/iceswift/homevault/actions/workflows/ci.yml/badge.svg)](https://github.com/iceswift/homevault/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-- Explicit repository initialization, project backup, snapshot listing, integrity check and restore.
-- Local repositories or an already-configured rclone remote (Google Drive transport).
-- One operation per state directory, context timeout/cancellation and argument-array subprocess execution.
-- Restore requires an explicit full snapshot ID and a new/empty destination; configured source, state, secret and repository paths are protected.
-- Keyboard TUI: arrows select project; `b` opens backup+check confirmation (Enter starts; any other key cancels), `s` snapshots, `c` repository check, `?` help, `q` quit. Quitting cancels interactive work; scheduled CLI work runs independently via systemd.
-- First-run guidance and width-aware detail scrolling support smaller terminals. The TUI does not infer that timers or workflow schedules are active; verify those separately with systemd.
-- TUI job history (`h`), read-only retention preview (`p`), recovery guide (`g`) and Page Up/Down scrolling. `b` runs a recorded backup+metadata-check job; capture-required projects use the separate reviewed CLI workflow.
+HomeVault is an open-source Go CLI/TUI for backing up selected files and prepared
+application data. Restic provides encryption, snapshots and deduplication; rclone
+connects cloud storage such as Google Drive. HomeVault adds project configuration,
+job history, capture workflows and recovery checks around those tools.
 
-New users: follow [onboarding and new-machine recovery](docs/ONBOARDING.md). `setup` generates a private starter config/checklist using an existing repository key; it never initializes, uploads or enables services. Linux preview packages and draft-release workflow are described in [releasing](docs/RELEASING.md).
+**Early development · Ubuntu/Linux first.** Start with the local demo below.
+A successful backup is not proof that your application can recover.
 
-Experimental [portable recovery kits](docs/RECOVERY-KIT.md) encrypt selected original credentials with age for independent custody. Opening creates a new recovery-only config; it does not initialize, back up or delete repository data. A generated-data fresh-container disaster drill passed, without production keys or an actual server loss.
+[Try the local demo](docs/QUICKSTART.md) · [Connect Google Drive](docs/DRIVE-OAUTH.md) ·
+[Prepare a real project](docs/ONBOARDING.md) · [Recovery evidence](docs/VM-RECOVERY-DRILL.md)
 
-The experimental [replacement-machine runbook](docs/REBUILD.md) describes reviewed
-snapshot selection, OCI image archive verification and isolated reconstruction.
-The catalog helper prepares recovery-only configs; it does not install or start
-services. Preparing a bundle is separate from proving a replacement-machine restore.
+## What using it looks like
 
-Optional Linux [prepared workflows](docs/PLANNED-WORKFLOWS.md) coordinate reviewed
-fresh captures/sealed bundles with verified uploads and source-age alerts. They
-require explicit activation and do not create timers or enable cloud schedules.
+Illustrative terminal view; project names and output depend on your configuration:
 
-Experimental Linux database preparation now supports SQLite online backup and PostgreSQL custom dumps before Restic runs. See [database configuration and limits](docs/DATABASE-BACKUPS.md). Database exports and attached files are not a shared atomic application snapshot; coordinate application writes externally when needed. Never point file paths directly at running PostgreSQL storage or copy live SQLite files as ordinary files.
+```text
+HOMEVAULT · encrypted backup orchestrator
 
-Experimental [backup jobs and alerts](docs/SCHEDULING-ALERTS.md) provide persisted backup/check status, the latest 32 attempts, freshness checks, optional minimal Discord notifications and reviewable systemd templates. They are not installed/enabled automatically. Plain backup and rehearsal remain distinct from a scheduled job's status.
+> photos
+  documents
 
-[Retention](docs/RETENTION.md) shows daily/weekly/monthly keep reasons and candidates without deleting anything. A separate experimental manual apply command requires a saved matching review, a preserved kept ID and explicit confirmation; it removes snapshot records only. [Reviewed prune](docs/PRUNE.md) separately removes unused packs repository-wide, without repacking, using tested Restic 0.19.1. The experimental [Drive OAuth wizard](docs/DRIVE-OAUTH.md) prepares private config, guides PKCE desktop consent and checks status; Google Cloud client creation and automatic scheduler installation remain manual. A real application still needs a reviewed live-capture plan; do not schedule repeated backups of a frozen one-time copy.
+↑/↓ select · b backup+check · h job history · s snapshots · c check
+p retention preview · d Drive status · g recovery guide · ? help
+PgUp/PgDn scroll · q quit
 
-The experimental Linux [fresh SQLite capture adapter](docs/FRESH-CAPTURE.md) supports a pinned single-container deployment, maintenance-window gating, DB+WAL/media capture under the job lock, independent resume attempts and a config-free recovery helper. A live plan, exclusive-writer review, private webhook and explicit service activation are still required; no production timer is enabled automatically.
+GET STARTED
+1. Select a project with Up/Down.
+2. Press h for verified job history or s for cloud snapshots.
+```
 
-Experimental Linux [recovery rehearsal](docs/RECOVERY-REHEARSAL.md) can restore a snapshot, start a constrained application with an optional [ephemeral PostgreSQL container](docs/POSTGRES-RECOVERY.md), run explicit health/database/media/login checks and write a cleanup-aware report. Arbitrary multi-service stacks and production-project onboarding are not implemented; synthetic proof is not evidence that your production app can recover.
+Press `b` to review a backup confirmation, then Enter to start or any other key to
+cancel. Capture-required applications use their reviewed workflow instead.
+Opening the TUI does not enable schedules or delete snapshots.
 
-## Build and verify
+## Try it without a cloud account
 
-Requires Go 1.24+, an official Restic executable, and rclone for cloud repositories. Dependencies are pinned in go.mod/go.sum.
-
-Ubuntu/Linux is the initial supported target. Windows builds and unit tests work, but real Windows restore encountered ACL/access-denied failures in this development environment and is not validated for use.
+You need Git, Go 1.24.5+ and Restic on Ubuntu/Linux. rclone is only needed for cloud
+repositories. No Docker, Google account, sudo or application data is needed for
+the demo once these dependencies are installed.
 
 ```sh
-go test ./...
+git clone https://github.com/iceswift/homevault.git
+cd homevault
 go build -trimpath -o bin/homevault ./cmd/homevault
-# Integration test uses only generated data under the test temporary directory:
-HOMEVAULT_TEST_RESTIC=/absolute/path/to/restic go test ./integration -v
+./bin/homevault version
 ```
 
-Create a private sandbox with separate `source`, `state`, `repository`, `restore` and `secrets` paths. Put only generated sample files in `source`. Store the repository password outside sources with mode 0600 on Linux. Keep a separate recoverable copy of that password: losing it loses access to the backups. Windows users must restrict file ACLs themselves; POSIX permission bits are not a Windows ACL audit.
+Follow the [copy-and-paste local Quick Start](docs/QUICKSTART.md) to create sample
+data, back it up, restore it into a separate directory and compare the bytes.
+The guide includes expected results and troubleshooting. Do this before adding
+real data or setting up Google Drive.
 
-`homevault demo-setup /absolute/new-lab` generates a brand-new synthetic source, random repository password and homevault.json; it refuses to adopt an existing directory. The parent directory must exist. No cloud connection is made.
+Building from source is the documented starting path. Linux preview packaging and
+checksum verification are described in [releasing](docs/RELEASING.md); this README
+does not assume a published stable release exists.
 
-Example configuration (replace every path with an absolute path appropriate to your system):
+## Choose the right scope
 
-```json
-{
-  "version": 1,
-  "state_dir": "/home/ice/homevault-lab/state",
-  "repository": "/home/ice/homevault-lab/repository",
-  "password_file": "/home/ice/homevault-lab/secrets/restic-password",
-  "projects": [{"name": "synthetic", "paths": ["/home/ice/homevault-lab/source"]}]
-}
+HomeVault suits Linux home-server owners comfortable with a terminal who want
+selected files or application data backed up to a local repository or cloud
+storage. It does not create a bootable disk image, discover every Docker volume,
+or automatically reconstruct your operating system and public routes.
+
+| Capability | Current status |
+| --- | --- |
+| Local encrypted backup, snapshots, check and guarded restore | Implemented; generated-data integration tests |
+| CLI/TUI, backup confirmation, job history and detail scrolling | Implemented |
+| Google Drive through rclone | Implemented; manual OAuth client setup; operator cloud restore evidence |
+| SQLite online export / PostgreSQL custom dump | Experimental; DB and media need coordinated capture |
+| Pinned container capture and prepared multi-project workflows | Experimental; explicit configuration and activation |
+| Discord alerts and systemd templates | Experimental; installed/tested per deployment, no automatic activation |
+| Retention preview, manual apply and separate prune | Experimental; explicit review and confirmation |
+| Recovery kits, image catalogs and isolated app recovery | Experimental; selected operator drills, not complete host recovery |
+| Automatic full-machine restore or production cutover | Not implemented |
+
+Linux amd64 is the operator-tested deployment target. Linux arm64 packages are
+cross-built but runtime compatibility is unverified. Windows builds/unit tests
+work; Windows deployment and restore are not supported as a validated target.
+
+## How the pieces fit
+
+```text
+Selected files / coordinated application exports
+                      ↓
+            HomeVault CLI / TUI
+                      ↓
+        Restic encrypted repository
+                      ↓
+      Local storage OR rclone → Google Drive
 ```
 
-Commands (global flags go before the command):
+There is no always-running HomeVault daemon or required public web service.
+Optional desktop OAuth uses a temporary loopback callback. Optional systemd jobs
+run independently of an open SSH connection. HomeVault does not read your open
+browser to choose a Google account.
 
-```sh
-homevault --config /absolute/homevault.json doctor
-homevault --config /absolute/homevault.json init
-homevault --config /absolute/homevault.json backup synthetic
-homevault --config /absolute/homevault.json snapshots synthetic
-homevault --config /absolute/homevault.json check
-homevault --config /absolute/homevault.json restore synthetic FULL_SNAPSHOT_ID /absolute/new-restore --confirm
-homevault --config /absolute/homevault.json tui
-```
+## What has actually been verified?
 
-`doctor` checks configuration and executable availability, not OAuth, repository health or restore correctness. Every nonzero Restic exit fails the operation, including partial backups. The application lock is intentionally not removed automatically after a crash; verify no HomeVault/Restic/rclone work remains before manually recovering it. Different state directories are not a global machine lock: use one state directory for the deployment. Do not concurrently manage the repository with other tools.
+Automated CI covers Go race tests/static analysis, template syntax and real local
+encrypted Restic fixtures. These tests use generated data, not production secrets.
+See [testing](docs/TESTING.md) and the [CI workflow](.github/workflows/ci.yml).
 
-## Google Drive
+One owner-operated deployment also restored selected encrypted Google Drive
+snapshots and rehearsed SQLite, PostgreSQL, JSON-state and static-site recovery
+in an isolated Ubuntu VM. That VM ran on the original physical server: this was
+not a physical disk-loss test, a full host rebuild or an independent-user trial.
+See the [VM drill and its limits](docs/VM-RECOVERY-DRILL.md) and
+[operator validation](docs/OPERATOR-VALIDATION.md).
 
-HomeVault does not require a Drive connector in the chat application. Use the [private Drive wizard](docs/DRIVE-OAUTH.md) with your own downloaded Desktop OAuth client, or configure rclone separately. Do not paste passwords, OAuth tokens, rclone.conf or repository keys into chat or Git. The wizard uses the narrow `drive.file` scope for app-created/authorized files; review its limits before adopting an existing repository.
+Schedules and retention depend on each deployment. Prepared templates and a
+successful manual test do not mean an automatic schedule is active.
 
-After separately authorizing the intended account and testing rclone, set `repository` to `rclone:gdrive:HomeVault/synthetic`. Restic supplies encryption; an additional rclone crypt layer is unnecessary here. Cloud transfers are not automatically initiated by opening a Drive browser tab. Start with synthetic fixtures and perform a complete cloud restore before enabling real data.
+## Before backing up real data
 
-Official references: [Restic rclone backend](https://restic.readthedocs.io/en/stable/030_preparing_a_new_repo.html), [rclone Google Drive setup](https://rclone.org/drive/).
+- Keep the original repository key recoverable outside the server. Losing it loses access to encrypted backups.
+- Prepare databases correctly; ordinary file copies of a running database are not a consistent backup.
+- Restore into a new target and validate the application, not only a repository check.
+- Keep passwords, OAuth tokens, webhook URLs and private configuration out of Git and issues.
 
-## Scheduling and recovery
+## Documentation
 
-The units in `deploy/` are reviewable templates, not installed automatically. Provision the service user, executable and protected configuration first, and adapt ReadWritePaths for the repository/cache/staging paths. The sample unit protects home directories; the example home-directory sandbox therefore cannot be used unchanged with that unit. Validate actual permissions and run a manual service test before enabling the timer. systemd supplies scheduling and process lifecycle so SSH does not need to stay open.
+| Goal | Guide |
+| --- | --- |
+| Complete a local backup and verified restore | [Quick Start](docs/QUICKSTART.md) |
+| Configure a real project | [Onboarding](docs/ONBOARDING.md) |
+| Authorize Drive | [Drive OAuth](docs/DRIVE-OAUTH.md) |
+| Prepare databases / container captures | [Databases](docs/DATABASE-BACKUPS.md) · [Fresh capture](docs/FRESH-CAPTURE.md) |
+| Schedule and monitor | [Jobs and alerts](docs/SCHEDULING-ALERTS.md) · [Prepared workflows](docs/PLANNED-WORKFLOWS.md) |
+| Review deletion and storage reclamation | [Retention](docs/RETENTION.md) · [Prune](docs/PRUNE.md) |
+| Recover on another machine | [Recovery kit](docs/RECOVERY-KIT.md) · [Rebuild runbook](docs/REBUILD.md) |
+| Develop / inspect plans | [Testing](docs/TESTING.md) · [Roadmap](docs/ROADMAP.md) |
 
-Do not delete failed restore output and claim success. Investigate it and restore again into a fresh target. Restic's normal check is not a complete application restore drill; compare file hashes and validate the database/application after restoring prepared exports.
+Questions or reproducible problems can go in [GitHub issues](https://github.com/iceswift/homevault/issues).
+Include the version, OS, command and redacted error; never attach real keys,
+private configuration, database dumps or OAuth responses.
 
-## Project status
-
-One owner-operated deployment has now completed off-server key opening, a fresh
-SQLite/media cloud backup and isolated application recovery, real Discord delivery
-tests, and manual systemd preflight/monitor execution. No timer is enabled. See
-[operator validation and remaining recovery scope](docs/OPERATOR-VALIDATION.md).
-This covers one application's data, not the whole server. Cloud-based host rebuild
-support is a planned next step; a second disk in the source server is not required
-for that direction.
-
-MIT licensed. Source: [iceswift/homevault](https://github.com/iceswift/homevault). No production service, database, cloud token or existing Drive file is required for local development. See [verification notes](docs/TESTING.md) and [roadmap](docs/ROADMAP.md) for tested behavior and remaining work.
+[MIT License](LICENSE). Built around [Restic](https://restic.net/) and
+[rclone](https://rclone.org/); their encryption and transport work is credited to
+those projects. HomeVault is an independent project.

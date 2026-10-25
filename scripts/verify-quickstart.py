@@ -1,0 +1,18 @@
+"""Keep the published walkthrough identical to the Linux CI smoke script."""
+from pathlib import Path
+import re
+
+root = Path(__file__).resolve().parents[1]
+text = (root / "docs/QUICKSTART.md").read_text(encoding="utf-8")
+blocks = re.findall(r"```bash\n(.*?)```", text, re.S)
+script = (root / "scripts/quickstart-smoke.sh").read_text(encoding="utf-8")
+if blocks != [script]:
+    raise SystemExit("FAIL Quick Start Bash block differs from tested smoke script")
+for name in ["README.md", "docs/QUICKSTART.md", "docs/ONBOARDING.md"]:
+    path = root / name
+    for link in re.findall(r"\]\(([^)]+)\)", path.read_text(encoding="utf-8")):
+        if "://" not in link and not link.startswith("#"):
+            target = link.split("#", 1)[0]
+            if not (path.parent / target).exists():
+                raise SystemExit(f"FAIL broken local link in {name}: {target}")
+print("PASS published Quick Start matches tested script; entry-point links exist")

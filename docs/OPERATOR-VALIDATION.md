@@ -1,6 +1,6 @@
 # Operator validation and recovery scope
 
-Updated 24 October 2026. These are observations from one owner-operated Linux
+Updated 25 October 2026. These are observations from one owner-operated Linux
 deployment, not automated acceptance tests or a general compatibility guarantee.
 Personal paths, account identifiers, credentials, snapshot IDs and deployment
 scripts are intentionally excluded from this repository.
@@ -45,10 +45,12 @@ images, operating-system configuration, proxy/tunnel settings or other services.
 The credential kit unlocks repository data; it does not supply missing application
 images or reconstruct the host by itself.
 
-## Next scope: rebuild a failed server from cloud backup
+## Initial rebuild plan (historical)
 
 The intended destination is encrypted Google Drive storage, without requiring a
-second backup disk in the source server. This direction is planned, not implemented:
+second backup disk in the source server. The initial plan below preceded the
+selected backups and VM drill recorded later in this document. Full host
+reconstruction remains incomplete:
 
 1. Inventory all applications, persistent mounts, databases, host configuration
    and dependencies. Review explicit inclusion/exclusion rules with the owner.
@@ -128,3 +130,15 @@ loaded all seven image references and exercised SQLite, PostgreSQL, JSON-state
 and static-site recovery with restart checks. See VM-RECOVERY-DRILL.md for precise
 scope, preserved failed attempts, cleanup and remaining host/hardware/cutover gaps.
 No physical disk-loss test or production cutover has been performed.
+
+## Prepared workflow verification — 25 October 2026
+
+Four operator-specific workflows passed source preflight under systemd. The
+monitor also ran under systemd and reported them as not activated. Installed
+program hashes and the reviewed unit policy were checked independently. All four
+workflows and notifications remained disabled; no new HomeVault timer or
+coordinator capture state existed. These observations prove preparation, not a
+successful scheduled capture, upload or notification under the new coordinator.
+
+The operator's proposed schedule/retention preferences are deployment decisions,
+not defaults or activated features of the public project.

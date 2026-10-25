@@ -10,9 +10,13 @@ import subprocess
 import tarfile
 
 ROOT = Path(__file__).resolve().parents[1]
-DOCS = ['ONBOARDING.md', 'DATABASE-BACKUPS.md', 'FRESH-CAPTURE.md',
+DOCS = ['QUICKSTART.md', 'ONBOARDING.md', 'DATABASE-BACKUPS.md', 'FRESH-CAPTURE.md',
         'RECOVERY-REHEARSAL.md', 'POSTGRES-RECOVERY.md', 'SCHEDULING-ALERTS.md',
-        'RETENTION.md', 'PRUNE.md', 'DRIVE-OAUTH.md', 'GO-OAUTH-LICENSE.txt', 'RECOVERY-KIT.md', 'TESTING.md']
+        'RETENTION.md', 'PRUNE.md', 'DRIVE-OAUTH.md', 'GO-OAUTH-LICENSE.txt',
+        'RECOVERY-KIT.md', 'TESTING.md', 'RELEASING.md', 'VM-RECOVERY-DRILL.md',
+        'OPERATOR-VALIDATION.md', 'PLANNED-WORKFLOWS.md', 'REBUILD.md', 'ROADMAP.md',
+        'RECOVERY-FILES.md', 'VERIFICATION.md', 'GOOGLE-DRIVE-SETUP.md']
+
 
 def add(tar, name, data, mode=0o644):
     info = tarfile.TarInfo(name)

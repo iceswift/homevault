@@ -15,19 +15,9 @@ Restic is a separate executable, and rclone is needed for a Drive repository.
 Review their official installation instructions. HomeVault does not download tools
 during ordinary backup. The fixture download script is for Linux amd64 CI/labs only.
 
-Use a new directory with an existing parent:
-
-```sh
-homevault demo-setup /absolute/new-lab
-homevault --config /absolute/new-lab/homevault.json doctor
-homevault --config /absolute/new-lab/homevault.json init
-homevault --config /absolute/new-lab/homevault.json job-backup synthetic
-homevault --config /absolute/new-lab/homevault.json snapshots synthetic
-homevault --config /absolute/new-lab/homevault.json restore synthetic FULL_SNAPSHOT_ID /absolute/new-restore --confirm
-```
-
-Compare the restored proof.txt bytes with the source. This exercises a local
-encrypted repository with generated data, not your cloud credentials or real app.
+Start with the [local Quick Start](QUICKSTART.md). It includes a full copy-and-paste
+backup/restore walkthrough, byte comparison, expected output and troubleshooting.
+It uses generated files and a separate local repository; no cloud account is needed.
 
 ## 2. Prepare an actual project configuration
 
@@ -77,8 +67,8 @@ restore files into a new empty target, validate the prepared DB and media, then
 perform an isolated [application rehearsal](RECOVERY-REHEARSAL.md).
 
 TUI keys: `h` job history, `s` snapshots, `p` read-only retention preview, `g` recovery
-guide, Page Up/Down scroll. `b` now runs job-backup followed by metadata check and
-records status; capture-required projects refuse this generic operation. The UI
+guide, `?` getting-started help, Page Up/Down scroll. `b` opens a confirmation;
+Enter starts job-backup followed by metadata check and records status; capture-required projects refuse this generic operation. The UI
 does not stop an application, restore over production or delete snapshots.
 
 Only after recovery and key custody are verified should you provision private
