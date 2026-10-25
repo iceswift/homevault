@@ -1,12 +1,10 @@
 # Linux preview packages and verification
 
-HomeVault is early development software. The first public preview is
-[v0.1.0-preview.1](https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.1).
-Its public archives and checksums were downloaded without GitHub authentication
-and verified after publication. This is a prerelease, not a stable release.
-The next candidate is `v0.1.0-preview.2`; its [review notes](https://github.com/iceswift/homevault/blob/main/docs/releases/v0.1.0-preview.2.md)
-are separate from Preview 1. Candidates remain drafts until a separate maintainer
-publication step; a draft does not replace the published download below.
+HomeVault is early development software. The current public prerelease is
+[v0.1.0-preview.2](https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.2).
+Its three assets were downloaded without GitHub authentication and verified after
+publication. It is a prerelease, not a stable release. Preview 1 assets are unchanged.
+Future candidates remain drafts until a separate maintainer publication step.
 
 ## Install a published preview without Go
 
@@ -21,7 +19,7 @@ To download this published preview, run in Bash (requires curl, tar and sha256su
 ```sh
 set -euo pipefail
 test "$(uname -s)" = Linux
-VERSION=v0.1.0-preview.1
+VERSION=v0.1.0-preview.2
 case "$(uname -m)" in
   x86_64) ARCH=amd64 ;;
   aarch64|arm64) ARCH=arm64 ;;
@@ -122,8 +120,8 @@ Dependency updates require review of the version and checksum together.
 
 ## Next-preview readiness
 
-Current preparation does not create a tag, GitHub draft, public release or update
-an installed server. Select an exact clean commit and finish its CI before any
+Preview 2 is published. The checks below also describe preparation for a future
+candidate; running them does not create a tag, release or server update. Select an exact clean commit and finish its CI before any
 separate candidate step above. Do not rename a development archive to a versioned
 release: its embedded source/version/dirty-state metadata must match the build.
 

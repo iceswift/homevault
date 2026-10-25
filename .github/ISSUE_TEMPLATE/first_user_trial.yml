@@ -79,7 +79,7 @@
       "id": "tui",
       "attributes": {
         "label": "Optional redesigned TUI feedback",
-        "description": "For current main/CI: evidence fields, h history, d readiness, b then Esc, narrow terminal/filtering. State completed/skipped/confusing tasks. Preview users can write not available in this version."
+        "description": "For current main/CI: evidence fields, h history, d readiness, b then Esc, narrow terminal/filtering. State completed/skipped/confusing tasks. Preview 1 users can write not available in this version."
       },
       "validations": {
         "required": true

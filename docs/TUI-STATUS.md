@@ -1,7 +1,7 @@
 # Read-only local status TUI
 
 `tui-status` connects the new layout to **local metadata**, separately from the
-synthetic `tui-demo` and the existing operational `tui`. Available on main and
+synthetic `tui-demo` and the existing operational `tui`. Included in Preview 2, current main and
 subsequent CI builds; not in the published `v0.1.0-preview.1`.
 
 ## Open an explicitly selected plan

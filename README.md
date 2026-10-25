@@ -8,12 +8,12 @@
 
 <p align="center">
   <a href="https://github.com/iceswift/homevault/actions/workflows/ci.yml"><img src="https://github.com/iceswift/homevault/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
-  <a href="https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.1"><img src="https://img.shields.io/badge/release-v0.1.0--preview.1-38bdf8" alt="Release v0.1.0-preview.1"></a>
+  <a href="https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.2"><img src="https://img.shields.io/badge/release-v0.1.0--preview.2-38bdf8" alt="Release v0.1.0-preview.2"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-94a3b8" alt="MIT license"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.1"><strong>Download Linux Preview</strong></a>
+  <a href="https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.2"><strong>Download Linux Preview</strong></a>
   &nbsp; · &nbsp; <a href="docs/RELEASING.md">Install &amp; verify</a>
   &nbsp; · &nbsp; <a href="docs/QUICKSTART.md">Try the local demo</a>
   &nbsp; · &nbsp; <a href="docs/ROADMAP.md">Roadmap</a>
@@ -54,7 +54,7 @@ Opening the TUI does not enable schedules or delete snapshots.
 
 **Begin with sample data. No cloud account or Docker needed.**
 
-1. **[Download the Preview](https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.1)** — choose your Linux archive.
+1. **[Download the Preview](https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.2)** — choose your Linux archive.
 2. **[Verify and run](docs/RELEASING.md)** — check its checksum, then run the bundled local demo.
 3. **Confirm the restored bytes match** before [configuring real data](docs/ONBOARDING.md) or [connecting Drive](docs/DRIVE-OAUTH.md).
 
@@ -87,7 +87,7 @@ expected results, byte-verified restore and troubleshooting.
 
 After building current main from source, run `./bin/homevault tui-demo`.
 Browse sample Overview/Projects screens, filter and open details without loading
-live config or running backup tools. This is not included in the published Preview.
+live config or running backup tools. Included in Preview 2; Preview 1 does not include this mode.
 
 See the [prototype guide](docs/TUI-PROTOTYPE.md) for keyboard controls, narrow-screen
 layouts, ASCII/monochrome modes and the fixed sample states.
@@ -95,7 +95,7 @@ layouts, ASCII/monochrome modes and the fixed sample states.
 </details>
 
 <details>
-<summary><strong>Read local workflow status (read-only, current main)</strong></summary>
+<summary><strong>Read local workflow status (read-only, Preview 2+)</strong></summary>
 
 Run `./bin/homevault tui-status --plan /absolute/reviewed-workflows.json` with an
 existing coordinator plan. Overview/Projects read local metadata; `r` refreshes
@@ -105,12 +105,12 @@ Use `--context production` to label an explicitly selected real workflow plan.
 Backup/check, source freshness, plan gates and recovery evidence are separate;
 a disabled gate does not erase prior backup evidence.
 See [read-only status and record scope](docs/TUI-STATUS.md). Missing local records
-do not mean cloud backups are absent. This mode is not in the published Preview.
+do not mean cloud backups are absent. Included in Preview 2; Preview 1 does not include this mode.
 
 </details>
 
 <details>
-<summary><strong>Run reviewed manual file jobs (current main)</strong></summary>
+<summary><strong>Run reviewed manual file jobs (Preview 2+)</strong></summary>
 
 Use `homevault --config /absolute/reviewed-files.json tui-jobs` for file-only
 backup/check jobs with typed confirmation, recorded phases and cancellation.
@@ -120,7 +120,7 @@ otherwise context is Unknown. Press `h` for local history or `d` for local
 readiness diagnostics and suggested fixes (metadata only, no cloud probe).
 This manual mode does not consume coordinator enabled flags/windows. Database and
 capture projects remain blocked. See [scope and controls](docs/TUI-JOBS.md) before
-using it. Not included in the published Preview.
+using it. Included in Preview 2; Preview 1 does not include this mode.
 
 </details>
 

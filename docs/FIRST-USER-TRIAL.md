@@ -6,21 +6,21 @@ account, Docker, server credentials or existing project configuration is needed.
 
 **Current evidence:** automated Linux amd64 package/restore rehearsals exist.
 An independent first-user trial is still pending. Maintainer and CI runs do not
-count as independent usability feedback. This guide is on main and will be bundled
-in future packages; it is not inside the existing `v0.1.0-preview.1` archive.
+count as independent usability feedback. This guide is bundled in Preview 2 and available on main; it is not inside
+the original `v0.1.0-preview.1` archive.
 
 ## Choose one starting point
 
 | Track | Use it for | Requirements |
 | --- | --- | --- |
-| Published Preview | First installation and byte-verified local recovery | Linux amd64, Bash, Python 3.11+, Restic; no Go compiler |
+| Published Preview 2 | First installation, byte-verified recovery and redesigned TUI | Linux amd64, Bash, Python 3.11+, Restic; no Go compiler |
 | Current-main/CI build | Feedback on redesigned TUI, history and readiness | Same runtime dependencies; source builds also need Git and Go 1.24.5+ |
 
 Use [release verification](RELEASING.md) to choose/check a prebuilt archive, or
 the [source Quick Start](QUICKSTART.md) to build. Do not mix binaries from the two
 tracks. Record `homevault version` and the archive/tag or full source commit.
 For a CI package, its `RELEASE.json` identifies the commit. CI artifacts are
-experimental and their downloads may require GitHub sign-in. The published Preview
+experimental and their downloads may require GitHub sign-in. The original Preview 1
 does not contain `tui-jobs`, `tui-status` or `tui-demo`; that is not an install bug.
 ARM64 packages are cross-built but native runtime testing remains unverified.
 
@@ -69,7 +69,7 @@ step and a short redacted error. Keep the sandbox; no cleanup or retry is requir
 to submit useful feedback. This proves sample-file recovery only, not full-server
 or application recovery.
 
-## 2. Try the redesigned TUI (current main/CI only)
+## 2. Try the redesigned TUI (Preview 2 or current main/CI)
 
 Use the sandbox directory printed above. Replace the example config path below
 with its generated `lab/homevault.json`. For a source build substitute
@@ -119,7 +119,7 @@ for security-sensitive findings.
 An independent trial is complete only when a person outside the implementation
 work records the tested version, follows the walkthrough, reports the byte-verified
 restore result and describes friction/help. TUI feedback can remain separately
-pending if the participant used the published Preview. A failed or abandoned trial
+pending if the participant used Preview 1. A failed or abandoned trial
 is valuable evidence, but does not count as successful onboarding.
 
 Track findings as issues with an affected step, proposed correction and a retest

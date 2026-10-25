@@ -6,11 +6,13 @@ Dates use `YYYY-MM-DD`; release history links point to the exact tag or comparis
 
 ## [Unreleased]
 
-No changes recorded after the Preview 2 candidate.
+### Changed
+
+- Public download/trial guidance now points to published Preview 2; immutable release archives and earlier assets are unchanged.
 
 ## [v0.1.0-preview.2] - 2026-10-25
 
-Candidate prepared for draft review; publication is a separate step.
+Published as an experimental prerelease on 2026-10-25.
 
 ### Added
 

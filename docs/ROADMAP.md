@@ -16,7 +16,7 @@ restore testing for each deployment.
 | Jobs and alerts | Durable backup/check status, source-age checks, optional Discord alerts and reviewed systemd templates | [Workflows](PLANNED-WORKFLOWS.md); installation/preflight is separate from live scheduled proof |
 | Retention and storage reclamation | Read-only plans, explicit reviewed snapshot removal and separate no-repack prune | [Retention](RETENTION.md) / [Prune](PRUNE.md); automatic deletion is not implemented |
 | Recovery preparation | Encrypted credential kits, selected image/config catalogs and isolated app rehearsals | [VM drill](VM-RECOVERY-DRILL.md); selected apps on the original physical host, not full host reconstruction |
-| Public distribution | [v0.1.0-preview.1](https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.1), checksums and extracted-package amd64 restore tests | [Releasing](RELEASING.md); ARM64 is cross-built only; no stable release |
+| Public distribution | [v0.1.0-preview.2](https://github.com/iceswift/homevault/releases/tag/v0.1.0-preview.2), checksums and extracted-package amd64 restore tests | [Releasing](RELEASING.md); ARM64 is cross-built only; no stable release |
 | Contributor entry points | Contribution/security policies, private vulnerability reporting and issue/PR templates | [Contributing](../CONTRIBUTING.md) / [Security](../SECURITY.md) |
 
 ## Current focus

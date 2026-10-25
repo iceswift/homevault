@@ -1,7 +1,7 @@
 # TUI design prototype (mock data only)
 
 This is step 1 of the redesign: an interactive, synthetic UI for reviewing layout
-and keyboard navigation. It is available on main/subsequent CI builds, **not** in
+and keyboard navigation. It is included in Preview 2/main/subsequent CI builds, **not** in
 the published `v0.1.0-preview.1`. The existing `tui` command is unchanged.
 
 ## Try it

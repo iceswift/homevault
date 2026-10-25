@@ -1,6 +1,6 @@
 # Reviewed manual file jobs
 
-Available on main; not included in `v0.1.0-preview.1`.
+Included in Preview 2 and current main; not included in `v0.1.0-preview.1`.
 
 ```sh
 homevault --config /absolute/reviewed-files.json tui-jobs --context production
